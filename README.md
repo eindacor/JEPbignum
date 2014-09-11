@@ -98,7 +98,7 @@ commands with files JEPbignum.cpp and JEPbignum.h in your working directory:
 	g++ -fpic -c JEPbignum.cpp
 	g++ -shared -o libJEPbignum.so JEPbignum.o 
 
-To use this library, source code must `#include` "JEPbignum.h", and the file 
+To use this library, source code must `#include "JEPbignum.h"`, and the file 
 JEPbignum.so must be placed in your shared library directory. When compiling 
 your object/program, be sure to link the library with `-lJEPbignum`.
 
@@ -109,8 +109,8 @@ JEPbignum uses the error report class `jep::bignum_Error`. To retrieve error
 information, use the member function `getErrorReport()`, which
 returns a string describing where and how the error occurred.
 
-By default this library can accommodate numbers with 1,000 digits, including 30 decimal places. These values can be modified by the `MAXDIGITS` and `PRECISION` macros in the header file JEPbignum.h, respectively. 
+By default this library can accommodate numbers with 1,000 digits, including 30 decimal places. These values can be modified by the `MAXDIGITS` and `PRECISION` macros in the header file JEPbignum.h, respectively. The source code using this library *must* be compiled use macro definitions that match those that were used to compile the original library.
 
-This library was created by Joseph E. Pollack in 2013.
+This library was created by Joseph E. Pollack in 2014.
 
 jpollack320@gmail.com
