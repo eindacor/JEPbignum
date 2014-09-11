@@ -11,7 +11,7 @@ Constructor|Description
 `jep::bignum(signed int n)`					|Creates a bignum of base 10 with the value of `n`.
 `jep::bignum(string s)`						|Creates a bignum of base 10 with the value of `s`.
 `jep::bignum(string s, int b)`					|Creates a bignum of base b with the value of `s`.
-`jep::bignum(std::vector<int> n, int offset, int set_base, bool is_negativei)`			|Creates a `bignum` of base `b` from a `std::vector<int>`. The first element of the vector will be set as the right-most digit of the `bignum`, unless an offset is passed. Passing `true` as the `is_negative` value will make the `bignum` negative.
+`jep::bignum(std::vector<int> n, int offset, int set_base, bool is_negativei)`			|Creates a `bignum` of base `set_base` from a `std::vector<int>`. The first element of the vector will be set as the right-most digit of the `bignum`, unless an offset is passed. Passing `true` as the `is_negative` value will make the `bignum` negative.
 
 
 
@@ -90,7 +90,7 @@ Function|Description
 `jep::average(vector<bignum> numbers_passed)`		|Returns the average value of all values passed as a `bignum`.
 
 ----
-###Building in Linux
+###Building on Linux
 
 To build this as a shared library from the source files, run the following 
 commands with files BigNum.cpp and BigNum.h in your working directory:
