@@ -16,65 +16,78 @@ your object/program, be sure to link the library with -lBigNum.
 ----
 ###bignum Constructors
 
+By default, failed or invalid constructors will throw a bignum_Error object.
+
 Function|Description
 :-----------------------------------------------	|:------------------------
-`bignum()`								|Creates a bignum of base 10 with the value of 0
-`bignum(signed int n)`					|Creates a bignum of base 10 with the value of n
-`bignum(string s)`						|Creates a bignum of base 10 with the value of s. If invalid characters are detected in string s, this constructor will throw a bignum_Error class.
-`bignum(string s, int b)`					|Creates a bignum of base b with the value of s. If invalid characters are detected in string s, this constructor will throw a bignum_Error class.
-`bignum(vector<int> n, int offset, int set_base, bool is_negativei)`			|Creates a bignum of base b from a vector of ints. Offset
+`jep::bignum()`								|Creates a bignum of base 10 with the value of 0
+`jep::bignum(signed int n)`					|Creates a bignum of base 10 with the value of n
+`jep::bignum(string s)`						|Creates a bignum of base 10 with the value of s.
+`jep::bignum(string s, int b)`					|Creates a bignum of base b with the value of s.
+`jep::bignum(vector<int> n, int offset, int set_base, bool is_negativei)`			|Creates a bignum of base b from a vector of ints. The first element of the vector will be set as the right-most digit of the bignum, unless an offset is passed. Passing `true` as the `is_negative` value will make the bignum negative.
 
 
 
+----
+###Basic Functions                      
 
-Function List                       
---------------------------------------------------------------------------------    
+Function|Description
+:-----------------------------------------------	|:------------------------
 
-jep::addNumbers(bignum bn1, bignum bn2)
+`jep::addNumbers(bignum bn1, bignum bn2)`			|Returns the sum of bn1 and bn2 as a bignum
+`jep::subtractNumbers(bignum bn1, bignum bn2)`		|Returns the difference of bn1 and bn2 as a bignum
+`jep::multiplyNumbers(bignum bn1, bignum bn2)`		|Returns the product of bn1 and bn2 as a bignum
+`jep::divideNumbers(bignum bn1, bignum bn2)`		|Returns the quotient of bn1 and bn2 as a bignum
+`jep::factorial(bignum bn)`							|Returns the factorial of bn as a bignum
+`jep::combinations(bignum bn1, bignum bn2)`			|Returns number of possible combinations when drawing bn2 instances out of bn1 instances total
+`jep::exponent(bignum bn1, bignum bn2)`				|Returns bn1 to the power of bn2 as a bignum
 
-    Returns the sum of bn1 and bn2 as a bignum
+----
+###Acceptable Operators 
+*`bignum < bignum`
+*`bignum < int`
+
+bignum <= bignum
+bignum <= int
+
+bignum > bignum    
+bignum > int                      
+
+bignum >= bignum                 
+bignum >= int                   
+
+bignum == bignum                  
+bignum == int                  
+
+bignum != bignum                   
+bignum != int                    
     
+bignum += bignum               
+bignum += int			
+bignum -= bignum           
+bignum -= int                     
+bignum *= bignum              
+bignum *= int                    
+bignum /= bignum                  
+bignum /= int                     
+bignum --                         
+bignum ++                         
+bignum = bignum                   
     
-   
-jep::subtractNumbers(bignum bn1, bignum bn2)
+bignum * bignum                  
+bignum * int                        
 
-    Returns the difference of bn1 and bn2 as a bignum
-    
-    
-    
-jep::multiplyNumbers(bignum bn1, bignum bn2)
+bignum / bignum            
+bignum / int                     
 
-    Returns the product of bn1 and bn2 as a bignum
-    
-    
-    
-jep::divideNumbers(bignum bn1, bignum bn2)
+bignum + bignum               
+bignum + int              
 
-    Returns the quotient of bn1 and bn2 as a bignum
+bignum - bignum             
+bignum - int                
 
-
-
-jep::factorial(bignum bn)
-
-    Returns the factorial of bn as a bignum
-
-
-
-jep::combinations(bignum bn1, bignum bn2)
-
-    Returns number of possible combinations when drawing bn2 instances out of bn1
-    instances total
-    
-
-
-jep::exponent(bignum bn1, bignum bn2)
-
-    Returns bn1 to the power of bn2 as a bignum
-
-
-
-
-bignum Member Functions
+----
+###Member Functions 
 --------------------------------------------------------------------------------
 
 SAMPLE.convertBase(int n)
