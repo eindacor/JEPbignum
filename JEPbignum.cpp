@@ -1239,7 +1239,7 @@ namespace jep
     
     		else if (comma==0 && (temp.getDigitCount()-i) >= PRECISION)
     		{
-    			if (i>0 && includeCommas==true)
+    			if (i>0 && include_commas==true)
     				tempString += ",";
     				 
     			comma = 3;
