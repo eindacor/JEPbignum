@@ -3,7 +3,7 @@
 ----
 ###`bignum` Constructors
 
-By default, failed or invalid constructors will throw a `bignum_Error` object.
+By default, failed or invalid constructors will throw a `bignum_Error` object.		
 Constructor|Description
 :-----------------------------------------------	|:------------------------
 `jep::bignum()`								|Creates a bignum of base 10 with the value of 0.
