@@ -53,23 +53,32 @@ namespace jep
 		updateDigits();
 	}
 
-	bignum::bignum(vector<int> n)
+	bignum::bignum(vector<int> n, int offset, int set_base, bool is_negative)
 	{
+		base = set_base;
+		if (offset < 0)
+			throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+
 		for (int i = 0; i<MAXDIGITS; i++)
 		{
 			digits[i] = 0;
 		}
 
-		int count = 0;
+		int count = offset;
 		for (vector<int>::iterator i = n.begin(); i != n.end(); i++)
-		{
+		{	
+			if (count >= MAXDIGITS || count < 0)
+				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+
+			if (*i >= base)
+				throw bignum_Error(__FILE__, __LINE__, "One of the values passed is beyond the given base");
+
 			digits[count] = (*i);
 			count++;
 		}
 
 		updateDigits();
-		base = 10;
-		negative = false;
+		negative = is_negative;
 	}
 
 	bignum::bignum(string s)
@@ -1183,15 +1192,15 @@ namespace jep
     }
     
 	//returns a string representing stored value
-    string bignum::getNumberString(bool includeCommas, bool percent, int decimalPlaces)
+    string bignum::getNumberString(bool include_commas, bool percent, int decimal_places)
     {
-		updateDigits();
+	updateDigits();
 
         bignum temp(*this);
         string tempString;
        
-        if (decimalPlaces>PRECISION)
-            decimalPlaces=PRECISION;
+        if (decimal_places>PRECISION)
+            decimal_places=PRECISION;
        
     	temp.updateDigits();
   
@@ -1199,7 +1208,7 @@ namespace jep
     	{
     		tempString += "0";
     		
-    		for (int i=0; i<decimalPlaces; i++)
+    		for (int i=0; i<decimal_places; i++)
     		{
     			tempString += (i==0 ? ".0" : "0");
     		}
@@ -1218,7 +1227,7 @@ namespace jep
     	if (negative==true)
     		 tempString += "-";
     
-    	temp.adjustPrecision(decimalPlaces);
+    	temp.adjustPrecision(decimal_places);
     
         int counter = temp.getDigitRange();
     	for (int i=0; i<counter; i++)
@@ -1329,42 +1338,7 @@ namespace jep
 	}
     
 	//returns the golden ratio  based on fib(n)/fib(n-1)
-    bignum golden(bignum b)
-    {
-        bignum temp1 = bignum(fibonacci(b));
-        bignum temp2 = bignum(fibonacci(b-1));
-        
-        return temp1/temp2;
-    }
-    
-    bignum golden(int n)
-    {
-        bignum temp(n);
-        return golden(temp);   
-    }
-    
-	//return fibonacci number at location b of the sequence
-    bignum fibonacci(bignum b)
-    {
-        bignum counter;
-        bignum high(1);
-        bignum low(1);
-        
-        while (counter < (b-2))
-        {
-            bignum temp = high;
-            high += low;
-            low = temp;
-            counter++;
-        }
-        return high;
-    }
-    
-    bignum fibonacci(int n)
-    {
-        bignum temp(n);
-        return fibonacci(temp);
-    }
+
     
 	//returns absolute value of bignum
     bignum bignum::absolute()
@@ -1415,11 +1389,48 @@ namespace jep
     		
     	updateDigits();
     }
+
+    bignum golden(bignum b)
+    {
+        bignum temp1 = bignum(fibonacci(b));
+        bignum temp2 = bignum(fibonacci(b-1));
+        
+        return temp1/temp2;
+    }
+    
+    bignum golden(int n)
+    {
+        bignum temp(n);
+        return golden(temp);   
+    }
+    
+	//return fibonacci number at location b of the sequence
+    bignum fibonacci(bignum b)
+    {
+        bignum counter;
+        bignum high(1);
+        bignum low(1);
+        
+        while (counter < (b-2))
+        {
+            bignum temp = high;
+            high += low;
+            low = temp;
+            counter++;
+        }
+        return high;
+    }
+    
+    bignum fibonacci(int n)
+    {
+        bignum temp(n);
+        return fibonacci(temp);
+    }
     
 	//returns random number within range with added resolution
-    bignum randomNumberAddPrecision(bignum bn1, bignum bn2, int addprecision)
+    bignum randomNumberAddPrecision(bignum bn1, bignum bn2, int add_precision)
     {
-    	if (addprecision>PRECISION)
+    	if (add_precision>PRECISION)
     		throw bignum_Error( __FILE__ , __LINE__, "specified precision was too fine");
     	
     	if(bn1.getBase()!=bn2.getBase())
@@ -1438,7 +1449,7 @@ namespace jep
     	int start = difference.getDigitCount()-1;
     	int tempdigit;
     	
-    	int counter = (addprecision>0 ? difference.getDigitRange()+addprecision : difference.getDigitRange());
+    	int counter = (add_precision>0 ? difference.getDigitRange()+add_precision : difference.getDigitRange());
     	
     	for (int i=0; i<counter; i++)
     	{
@@ -1462,9 +1473,9 @@ namespace jep
     }
     
 	//returns random number within range with a specified resolution
-    bignum randomNumberForcePrecision(bignum bn1, bignum bn2, int forceprecision)
+    bignum randomNumberForcePrecision(bignum bn1, bignum bn2, int force_precision)
     {
-    	if (forceprecision>PRECISION)
+    	if (force_precision>PRECISION)
     		throw bignum_Error( __FILE__ , __LINE__, "specified precision was too fine");
     	
     	if(bn1.getBase()!=bn2.getBase())
@@ -1478,15 +1489,15 @@ namespace jep
     	difference.setBase(bn1.getBase());
     	temp.setBase(bn1.getBase());
     	
-    	bn1.adjustPrecision(forceprecision);
-    	bn2.adjustPrecision(forceprecision);
+    	bn1.adjustPrecision(force_precision);
+    	bn2.adjustPrecision(force_precision);
     	
     	difference = (bn1>bn2 ? bn1-bn2 : bn2-bn1);
     	
     	int start = difference.getDigitCount()-1;
     	int tempdigit;
     	
-    	int counter = (difference.getDigitCount()-(PRECISION-forceprecision));
+    	int counter = (difference.getDigitCount()-(PRECISION-force_precision));
     	
     	for (int i=0; i<counter; i++)
     	{

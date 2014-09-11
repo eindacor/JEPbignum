@@ -28,7 +28,7 @@ namespace jep
     class bignum
     {
     	public:
-    		bignum(vector<int> n);
+    		bignum(vector<int> n, int offset, int set_base, bool is_negative);
     		bignum();
     		bignum(int n);
     		bignum(string s);
@@ -43,7 +43,7 @@ namespace jep
     		int getDigitRange() {return digitRange;}
     		
     		string getDigitString(int n);
-    		string getNumberString(bool includeCommas, bool percent, int decimalPlaces);
+    		string getNumberString(bool include_commas, bool percent, int decimal_places);
     		
     		bool getNegative() {return negative;}
     		void updateDigits();
