@@ -1,5 +1,5 @@
 ----
-#BigNum library README
+#JEPbignum library README
 ----
 ###`bignum` Constructors
 
