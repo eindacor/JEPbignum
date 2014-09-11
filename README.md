@@ -90,7 +90,7 @@ Function|Description
 `jep::average(vector<bignum> numbers_passed)`		|Returns the average value of all values passed as a `bignum`.
 
 ----
-###Building on Linux
+###Building in Linux
 
 To build this as a shared library from the source files, run the following 
 commands with files BigNum.cpp and BigNum.h in your working directory:
