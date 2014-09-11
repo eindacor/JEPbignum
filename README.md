@@ -1,10 +1,9 @@
 ----
 #BigNum library README
 ----
-##`bignum` Constructors
+###`bignum` Constructors
 
 By default, failed or invalid constructors will throw a bignum_Error object.
-
 Constructor|Description
 :-----------------------------------------------	|:------------------------
 `jep::bignum()`								|Creates a bignum of base 10 with the value of 0
@@ -16,8 +15,7 @@ Constructor|Description
 
 
 ----
-##Basic Mathematical `bignum` Member Functions                      
-
+###Basic Mathematical `bignum` Member Functions                      
 Function|Description
 :-------------------------------------------------------------	|:------------------------
 `jep::addNumbers(bignum bn1, bignum bn2)`			|Returns the sum of bn1 and bn2 as a bignum
@@ -29,12 +27,11 @@ Function|Description
 `jep::exponent(bignum bn1, bignum bn2)`				|Returns bn1 to the power of bn2 as a bignum
 
 ----
-##Other `bignum` Member Functions 
-
+###Other `bignum` Member Functions 
 Function|Description
 :-------------------------------------------------------------	|:------------------------
 `convertBase(int n)`									|Converts number to base n.
-`getDigitCount()`										Returns the number of digits, including all decimal places set by the PRECISION macro, as an `int`.
+`getDigitCount()`										|Returns the number of digits, including all decimal places set by the PRECISION macro, as an `int`.
 `getDecimalCount()`									|Returns the range of non-zero digits below the decimal point as an `int`. A `bignum` with the value 12.345 would return 3.
 `getDigitString(int n)`									|Returns the digit at location n as a `std::string`.
 `getNumberString(bool include_commas, bool percent, int decimal_places)`	|Returns ann `std::string` containing the value, with the precision of `decimal_places`. The string will contain commas only when `include_commas` is `true`. When `percent` is true, the string will include a % sign and be adjusted accordingly.
@@ -45,7 +42,7 @@ Function|Description
 `adjustPrecision(int n)`								|Rounds the `bignum` to `n` decimal places.
 
 ----
-##Acceptable Operators 
+###Acceptable Operators 
 * `bignum + bignum`
 * `bignum + int`
 * `bignum - bignum`
@@ -79,7 +76,7 @@ Function|Description
 * `bignum = bignum`
 
 ----
-##Acceptable Operators 
+###Miscellaneous Utility Functions
 
 Function|Description
 :-------------------------------------------------------------	|:------------------------
@@ -92,7 +89,7 @@ Function|Description
 `jep::average(vector<bignum> numbers_passed)`		|Returns the average value of all values passed as a `bignum`.
 
 ----
-##Building on Linux
+###Building on Linux
 
 To build this as a shared library from the source files, run the following 
 commands with files BigNum.cpp and BigNum.h in your working directory:
@@ -105,7 +102,7 @@ JEPbignum.so must be placed in your shared library directory. When compiling
 your object/program, be sure to link the library with -lJEPbignum.
 
 ----
-##Misc Information
+###Additional Information
 
 JEPbignum uses the error report class bignum_Error. To retrieve error
 information, use the member function `SAMPLE_ERROR.getErrorReport()`, which
@@ -115,3 +112,4 @@ By default this library can accommodate numbers with 1,000 digits, including 30 
 
 This library was created by Joseph E. Pollack in 2013.
 
+jpollack320@gmail.com
