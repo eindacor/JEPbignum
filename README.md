@@ -93,7 +93,7 @@ Function|Description
 ###Building in Linux
 
 To build this as a shared library from the source files, run the following 
-commands with files BigNum.cpp and BigNum.h in your working directory:
+commands with files JEPbignum.cpp and JEPbignum.h in your working directory:
 
 	g++ -fpic -c JEPbignum.cpp
 	g++ -shared -o libJEPbignum.so JEPbignum.o 
