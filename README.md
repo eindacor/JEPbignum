@@ -1,6 +1,6 @@
---------------------------------------------------------------------------------
-                            BigNum library README
---------------------------------------------------------------------------------
+----
+#BigNum library README
+----
 
 
 To build this as a shared library from the source files, run the following 
@@ -13,18 +13,14 @@ To use this library, source code must #include "JEPbignum.h", and the file
 JEPbignum.so must be placed in your shared library directory. When compiling 
 your object/program, be sure to link the library with -lBigNum.
 
+----
+###bignum Constructors
+----
 
-bignum Constructors
---------------------------------------------------------------------------------
-
-bignum();
-
-    Creates a bignum of base 10 with the value of 0
-
-
-bignum(int n);
-
-    Creates a bignum of base 10 with the value of n
+Function|Description
+:--------------------				|:------------------------
+`bignum()`						|Creates a bignum of base 10 with the value of 0
+`bignum(int n)`					|Creates a bignum of base 10 with the value of n
 
 
 bignum(string s);
