@@ -17,17 +17,12 @@ your object/program, be sure to link the library with -lBigNum.
 ###bignum Constructors
 
 Function|Description
-:--------------------				|:------------------------
-`bignum()`						|Creates a bignum of base 10 with the value of 0
-`bignum(int n)`					|Creates a bignum of base 10 with the value of n
-`bignum(string s)`				|Creates a bignum of base 10 with the value of s. If invalid characters are detected in string s, this constructor will throw a bignum_Error class.
-    
-
-bignum(string s, int b);
-
-    Creates a bignum of base b with the value of s. If invalid characters
-    are detected in string s, this constructor will throw a bignum_Error
-    class.
+:-----------------------------------------------	|:------------------------
+`bignum()`								|Creates a bignum of base 10 with the value of 0
+`bignum(signed int n)`					|Creates a bignum of base 10 with the value of n
+`bignum(string s)`						|Creates a bignum of base 10 with the value of s. If invalid characters are detected in string s, this constructor will throw a bignum_Error class.
+`bignum(string s, int b)`					|Creates a bignum of base b with the value of s. If invalid characters are detected in string s, this constructor will throw a bignum_Error class.
+`bignum(vector<int> n, int offset, int set_base, bool is_negativei)`			|Creates a bignum of base b from a vector of ints. Offset
 
 
 
