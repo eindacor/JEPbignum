@@ -714,7 +714,7 @@ namespace jep
 	//FUNCTION FOR CALCULATING EXPONENTS
     bignum exponent(bignum bn1, bignum bn2)
     {
-		if (bn2.getDecimalCount > 0)
+		if (bn2.getDecimalCount() > 0)
 			throw bignum_Error(__FILE__, __LINE__, "Cannot use decimals as exponential powers");
 
         bignum counter = bn2.absolute();
