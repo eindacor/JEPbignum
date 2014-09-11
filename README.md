@@ -33,7 +33,6 @@ Function|Description
 
 Function|Description
 :-----------------------------------------------	|:------------------------
-
 `jep::addNumbers(bignum bn1, bignum bn2)`			|Returns the sum of bn1 and bn2 as a bignum
 `jep::subtractNumbers(bignum bn1, bignum bn2)`		|Returns the difference of bn1 and bn2 as a bignum
 `jep::multiplyNumbers(bignum bn1, bignum bn2)`		|Returns the product of bn1 and bn2 as a bignum
@@ -44,7 +43,8 @@ Function|Description
 
 ----
 ###Acceptable Operators 
-*`bignum < bignum`
+* Unordered list can use asterisks
+* `bignum < bignum`
 *`bignum < int`
 
 bignum <= bignum
