@@ -57,7 +57,7 @@ namespace jep
 	{
 		base = set_base;
 		if (offset < 0)
-			throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+			throw bignum_Error(__FILE__, __LINE__, "bignum::bignum(vector<int> n, int offset, int set_base, bool is_negative): The program has attempted to calculate a value outside of its limits");
 
 		for (int i = 0; i<MAXDIGITS; i++)
 		{
@@ -68,10 +68,10 @@ namespace jep
 		for (vector<int>::iterator i = n.begin(); i != n.end(); i++)
 		{	
 			if (count >= MAXDIGITS || count < 0)
-				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+				throw bignum_Error(__FILE__, __LINE__, "bignum::bignum(vector<int> n, int offset, int set_base, bool is_negative): The program has attempted to calculate a value outside of its limits");
 
 			if (*i >= base)
-				throw bignum_Error(__FILE__, __LINE__, "One of the values passed is beyond the given base");
+				throw bignum_Error(__FILE__, __LINE__, "bignum::bignum(vector<int> n, int offset, int set_base, bool is_negative): One of the values passed is beyond the given base");
 
 			digits[count] = (*i);
 			count++;
@@ -378,7 +378,7 @@ namespace jep
     	{
 			//verify function isn't checking beyond bounds of the stored array
 			if (i >= MAXDIGITS || i < 0)
-				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+				throw bignum_Error(__FILE__, __LINE__, "bignum addNumbers(bignum bn1, bignum bn2): The program has attempted to calculate a value outside of its limits");
 
     		int tempNumber = bn1.getDigit(i) + bn2.getDigit(i);
     		
@@ -511,7 +511,7 @@ namespace jep
     	{
 			//verify function isn't checking beyond bounds of the stored array
 			if (i >= MAXDIGITS || i < 0)
-				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+				throw bignum_Error(__FILE__, __LINE__, "bignum subtractNumbers(bignum bn1, bignum bn2): The program has attempted to calculate a value outside of its limits");
 
     		int tempNumber = bn1.getDigit(i) - bn2.getDigit(i);
     		
@@ -580,13 +580,13 @@ namespace jep
 
 			//verify function isn't checking beyond bounds of the stored array
 			if (toMultiply >= MAXDIGITS || toMultiply < 0)
-				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+				throw bignum_Error(__FILE__, __LINE__, "bignum multiplyNumbers(bignum bn1, bignum bn2): The program has attempted to calculate a value outside of its limits");
 
     		bignum toAdd = multiplyNumbersSimple(bn1.absolute(), bn2.getDigit(toMultiply) );
 
 			//verify toAdd would not overstep bounds
 			if (toAdd.getDigitCount() == MAXDIGITS && i > 0)
-				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+				throw bignum_Error(__FILE__, __LINE__, "bignum multiplyNumbers(bignum bn1, bignum bn2): The program has attempted to calculate a value outside of its limits");
 
     		toAdd.timesTen(i);
     		temp += toAdd;
@@ -662,7 +662,7 @@ namespace jep
     			end = true;
     
 			if (marker >= MAXDIGITS || marker < 0)
-				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+				throw bignum_Error(__FILE__, __LINE__, "bignum divideNumbers(bignum bn1, bignum bn2): The program has attempted to calculate a value outside of its limits");
 
     		temp.setDigit(marker, nextNumber.getDigit(PRECISION));
     		marker--;
@@ -672,8 +672,8 @@ namespace jep
     		numberToCompare -= numberToSubtract;
     		numberToCompare.timesTen(1);
     
-			if (marker >= MAXDIGITS || marker < 0)
-				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+			if (marker >= MAXDIGITS)
+				throw bignum_Error(__FILE__, __LINE__, "bignum divideNumbers(bignum bn1, bignum bn2): The program has attempted to calculate a value outside of its limits");
 
     		if (marker>=0)
     			numberToCompare += bn1.getDigit(marker);
@@ -1130,7 +1130,7 @@ namespace jep
 				int marker(digitCount - i - 1);
 
 				if (marker >= MAXDIGITS || marker < 0)
-					throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+					throw bignum_Error(__FILE__, __LINE__, "void bignum::convertBase(int n): The program has attempted to calculate a value outside of its limits");
 
 				//convert individual digit to a different base
 				bignum bn1(getDigit(marker));
@@ -1267,7 +1267,7 @@ namespace jep
     void bignum::timesTen(int n)
     {
 		if (digitCount >= MAXDIGITS - 1)
-			throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+			throw bignum_Error(__FILE__, __LINE__, "void bignum::timesTen(int n): The program has attempted to calculate a value outside of its limits");
 
         for (int i=0; i<n; i++)
     	{
@@ -1290,7 +1290,7 @@ namespace jep
     		for (int c=(PRECISION-decimalCount); c <= digitCount; c++)
     		{
 				if (c == 0)
-					throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+					throw bignum_Error(__FILE__, __LINE__, "void bignum::divideByTen(int n): The program has attempted to calculate a value outside of its limits");
 
     			digits[c-1] = digits[c];
     		}
