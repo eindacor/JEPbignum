@@ -93,10 +93,10 @@ Function|Description
 ###Building in Linux
 
 To build this as a shared library from the source files, run the following 
-commands with files JEPjep::bignum.cpp and JEPjep::bignum.h in your working directory:
+commands with files JEPbignum.cpp and JEPbignum.h in your working directory:
 
 	g++ -fpic -c JEPbignum.cpp
-	g++ -shared -o libJEPbignum.so JEPjep::bignum.o 
+	g++ -shared -o libJEPbignum.so JEPbignum.o 
 
 To use this library, source code must `#include` "JEPbignum.h", and the file 
 JEPbignum.so must be placed in your shared library directory. When compiling 
@@ -109,7 +109,7 @@ JEPbignum uses the error report class `jep::bignum_Error`. To retrieve error
 information, use the member function `getErrorReport()`, which
 returns a string describing where and how the error occurred.
 
-By default this library can accommodate numbers with 1,000 digits, including 30 decimal places. These values can be modified by the `MAXDIGITS` and `PRECISION` macros in the header file JEPjep::bignum.h, respectively. 
+By default this library can accommodate numbers with 1,000 digits, including 30 decimal places. These values can be modified by the `MAXDIGITS` and `PRECISION` macros in the header file JEPbignum.h, respectively. 
 
 This library was created by Joseph E. Pollack in 2013.
 
