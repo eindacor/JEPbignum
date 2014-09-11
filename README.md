@@ -105,8 +105,8 @@ your object/program, be sure to link the library with `-lJEPbignum`.
 ----
 ###Additional Information
 
-JEPbignum uses the error report class bignum_Error. To retrieve error
-information, use the member function `SAMPLE_ERROR.getErrorReport()`, which
+JEPbignum uses the error report class `jep::bignum_Error`. To retrieve error
+information, use the member function `getErrorReport()`, which
 returns a string describing where and how the error occurred.
 
 By default this library can accommodate numbers with 1,000 digits, including 30 decimal places. These values can be modified by the `MAXDIGITS` and `PRECISION` macros in the header file JEPbignum.h, respectively. 
