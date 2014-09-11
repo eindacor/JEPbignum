@@ -75,6 +75,8 @@ Function|Description
 * `jep::bignum --`
 * `jep::bignum ++`
 * `jep::bignum = jep::bignum`
+* `jep::bignum = int`
+* `jep::bignum = string`
 
 ----
 ###Miscellaneous Utility Functions
