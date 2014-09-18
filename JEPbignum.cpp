@@ -766,19 +766,16 @@ namespace jep
     	int highestDigits=0;
     	int decimal=0;
     
-    	if (digitCount < b.getDigitCount())
-            highestDigits = b.getDigitCount();
-            
-    	else highestDigits = digitCount;
+		highestDigits = (digitCount < b.getDigitCount() ? b.getDigitCount() : digitCount);
     
-    	if (decimalCount < b.getDecimalCount())
-    		decimal = b.getDecimalCount();
-    
-    	else decimal = decimalCount;
+		decimal = (decimalCount < b.getDecimalCount() ? b.getDecimalCount() : decimalCount);
         
     	for (int i=(PRECISION-decimal); i<highestDigits; i++)
     	{
-    	  digits[i] = b.getDigit(i);
+			if (i >= MAXDIGITS)
+				throw bignum_Error(__FILE__, __LINE__, "error location : void bignum::operator = (bignum b)");
+
+			digits[i] = b.getDigit(i);
     	}
         
         negative = b.getNegative();
@@ -809,6 +806,7 @@ namespace jep
     void bignum::operator ++ (int)
     {
     	bignum temp(1);
+		temp.setBase(base);
     	*this += temp;
     }
     
@@ -860,10 +858,7 @@ namespace jep
         
 		//if bases are different, convert the second and re-evaluate
 		if (base != b.getBase())
-		{
-			temp.convertBase(base);
-			return (*this < temp);
-		}
+			throw bignum_Error(__FILE__, __LINE__, "program attempted to compare bignums of a different base");
 
         updateDigits();
         temp.updateDigits();
@@ -926,10 +921,7 @@ namespace jep
 
 		//if bases are different, convert the second and re-evaluate
 		if (base != b.getBase())
-		{
-			temp.convertBase(base);
-			return (*this > temp);
-		}
+			throw bignum_Error(__FILE__, __LINE__, "program attempted to compare bignums of a different base");
         
         updateDigits();
         temp.updateDigits();
@@ -1111,6 +1103,7 @@ namespace jep
 	{
 		bool original_negative = negative;
 
+		bignum toAdd;
 		bignum temp;
 		temp.setBase(n);
 
@@ -1146,7 +1139,7 @@ namespace jep
 				bignum multiplier = exponent(bn2, power);
 
 				//add value to the temporary return value
-				bignum toAdd(multiplyNumbers(bn1, multiplier));
+				toAdd = multiplyNumbers(bn1, multiplier);
 
 				temp += toAdd;
 			}
@@ -1554,4 +1547,4 @@ namespace jep
 		return temp;
 	}
     
-} //END OF NAMESPACE JEP 
+} //END OF NAMESPACE JEP
