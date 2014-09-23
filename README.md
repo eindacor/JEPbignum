@@ -1,7 +1,9 @@
 #JEPbignum library README
 
 A cross-platform library designed to calculate and accurately represent values that exceed the size limitations of the standard `int`, `float`, and `double` data types.
-----
+
+
+
 ###`jep::bignum` Constructors
 
 By default, failed or invalid constructors will throw a `jep::bignum_Error` object.	
@@ -16,7 +18,6 @@ Constructor|Description
 
 
 
-
 ###Basic Mathematical `jep::bignum` Member Functions                      
 Function|Description
 :-------------------------------------------------------------	|:------------------------
@@ -27,6 +28,7 @@ Function|Description
 `jep::factorial(jep::bignum bn)`							|Returns the factorial of `bn` as a `jep::bignum`.
 `jep::combinations(jep::bignum bn1, jep::bignum bn2)`			|Returns number of possible combinations when drawing `bn2` instances out of `bn1` instances total as a `jep::bignum`.
 `jep::exponent(jep::bignum bn1, jep::bignum bn2)`				|Returns `bn1` to the power of `bn2` as a `jep::bignum`.
+
 
 
 ###Other `jep::bignum` Member Functions 
@@ -43,7 +45,8 @@ Function|Description
 `withoutDecimals()`									|Returns `jep::bignum` with no decimal places. This function does not round or modify `*this`.
 `adjustPrecision(int n)`								|Rounds the `jep::bignum` to `n` decimal places.
 
-----
+
+
 ###Acceptable Operators 
 * `jep::bignum + jep::bignum`
 * `jep::bignum + int`
@@ -79,7 +82,8 @@ Function|Description
 * `jep::bignum = int`
 * `jep::bignum = std::string`
 
-----
+
+
 ###Miscellaneous Utility Functions
 
 Function|Description
@@ -92,7 +96,8 @@ Function|Description
 `jep::randomNumberForcePrecision(jep::bignum bn1, jep::bignum bn2, int force_precision)`	|Returns a random number with the range of `bn1` to `bn2`, with a forced resolution of `force_precision`.
 `jep::average(vector<jep::bignum> numbers_passed)`		|Returns the average value of all values passed as a `jep::bignum`.
 
-----
+
+
 ###Building in Linux
 
 To build this as a shared library from the source files, run the following 
@@ -105,7 +110,8 @@ To use this library, source code must `#include "JEPbignum.h"`, and the file
 JEPbignum.so must be placed in your shared library directory. When compiling 
 your object/program, be sure to link the library with `-lJEPbignum`.
 
-----
+
+
 ###Additional Information
 
 Functions and that take 2 values as arguments (`bignum`'s or `int`'s) automatically translate the second value to match the base of the first for computation. The base of the returning value always matches the first value passed. `bignum` operators automatically translate the value passed to match the base of `*this`.
