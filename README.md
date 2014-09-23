@@ -4,6 +4,8 @@ A cross-platform library designed to calculate and accurately represent values t
 
 
 
+
+
 ###`jep::bignum` Constructors
 
 By default, failed or invalid constructors will throw a `jep::bignum_Error` object.	
@@ -15,6 +17,8 @@ Constructor|Description
 `jep::bignum(string s)`						|Creates a `jep::bignum` of base 10 with the value of `s`.
 `jep::bignum(string s, int b)`					|Creates a `jep::bignum` of base `b` with the value of `s`.
 `jep::bignum(std::vector<int> n, int offset, int set_base, bool is_negativei)`			|Creates a `jep::bignum` of base `set_base` from a `std::vector<int>`. The first element of the vector will be set as the right-most digit of the `jep::bignum`, unless an offset is passed. Passing `true` as the `is_negative` value will make the `jep::bignum` negative.
+
+
 
 
 
@@ -31,6 +35,8 @@ Function|Description
 
 
 
+
+
 ###Other `jep::bignum` Member Functions 
 Function|Description
 :-------------------------------------------------------------	|:------------------------
@@ -44,6 +50,8 @@ Function|Description
 `absolute()`											|Returns the absolute value as a `jep::bignum`.
 `withoutDecimals()`									|Returns `jep::bignum` with no decimal places. This function does not round or modify `*this`.
 `adjustPrecision(int n)`								|Rounds the `jep::bignum` to `n` decimal places.
+
+
 
 
 
@@ -84,6 +92,8 @@ Function|Description
 
 
 
+
+
 ###Miscellaneous Utility Functions
 
 Function|Description
@@ -95,6 +105,8 @@ Function|Description
 `jep::randomNumberAddPrecision(jep::bignum bn1, jep::bignum bn2, int add_precision)`	|Returns a random number with the range of `bn1` to `bn2`, with an added resolution of `add_precision` decimal places, as a `jep::bignum`.
 `jep::randomNumberForcePrecision(jep::bignum bn1, jep::bignum bn2, int force_precision)`	|Returns a random number with the range of `bn1` to `bn2`, with a forced resolution of `force_precision`.
 `jep::average(vector<jep::bignum> numbers_passed)`		|Returns the average value of all values passed as a `jep::bignum`.
+
+
 
 
 
@@ -112,9 +124,11 @@ your object/program, be sure to link the library with `-lJEPbignum`.
 
 
 
+
+
 ###Additional Information
 
-Functions and that take 2 values as arguments (`bignum`'s or `int`'s) automatically translate the second value to match the base of the first for computation. The base of the returning value always matches the first value passed. `bignum` operators automatically translate the value passed to match the base of `*this`.
+Functions and that take 2 values as arguments (`jep::bignum` objects or `int`s) automatically translate the second value to match the base of the first for computation. The base of the returning value always matches the first value passed. `bignum` operators automatically translate the value passed to match the base of `*this`.
 
 JEPbignum uses the error report class `jep::bignum_Error`. To retrieve error
 information, use the member function `getErrorReport()`, which
