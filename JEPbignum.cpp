@@ -286,6 +286,9 @@ namespace jep
     //FUNCTION FOR ADDING NUMBERS OF DIFFERENT BASES
     bignum addNumbers(bignum bn1, bignum bn2)
     {
+		if (bn1.getBase() != bn2.getBase())
+			bn2.convertBase(bn1.getBase());
+
         int base = bn1.getBase();
         
     	bignum sum;
@@ -406,6 +409,9 @@ namespace jep
     //FUNCTION FOR SUBTRACTING NUMBERS
     bignum subtractNumbers(bignum bn1, bignum bn2)
     {
+		if (bn1.getBase() != bn2.getBase())
+			bn2.convertBase(bn1.getBase());
+
         int base = bn1.getBase();
         bignum difference;
     	difference.setBase(base);
@@ -566,6 +572,9 @@ namespace jep
 	//FUNCTION FOR MULTIPLYING NUMBERS
     bignum multiplyNumbers(bignum bn1, bignum bn2)
     {
+		if (bn1.getBase() != bn2.getBase())
+			bn2.convertBase(bn1.getBase());
+
         bignum temp(0);
         temp.setBase(bn1.getBase());
     
@@ -627,6 +636,9 @@ namespace jep
 	//FUNCTION FOR DIVIDING NUMBERS
     bignum divideNumbers(bignum bn1, bignum bn2)
     {
+		if (bn1.getBase() != bn2.getBase())
+			bn2.convertBase(bn1.getBase());
+
 		//throws an exception if the program is attempting to divide by zero
     	if (bn2==0)
     		throw bignum_Error(__FILE__, __LINE__, "Cannot divide a number by zero");
@@ -710,6 +722,9 @@ namespace jep
 	//FUNCTION FOR CALCULATING PERMUTATIONS
     bignum combinations(bignum bn1, bignum bn2)
     {
+		if (bn1.getBase() != bn2.getBase())
+			bn2.convertBase(bn1.getBase());
+
     	bignum first = factorial(bn1);
     	bignum second = bn1-bn2;
     	bignum third = factorial(second);
@@ -724,6 +739,9 @@ namespace jep
 	//FUNCTION FOR CALCULATING EXPONENTS
     bignum exponent(bignum bn1, bignum bn2)
     {
+		if (bn1.getBase() != bn2.getBase())
+			bn2.convertBase(bn1.getBase());
+
 		bignum one(1);
 		one.setBase(bn1.getBase());
 		one.setPositive();
@@ -783,8 +801,7 @@ namespace jep
     
     void bignum::operator = (string s)
     {
-    	bignum temp(s);
-    	
+    	bignum temp(s);   	
     	(*this) = temp;
     }
     
@@ -889,10 +906,7 @@ namespace jep
     
     bool bignum::operator <= (bignum b)
     {
-		if (*this < b || *this == b)
-			return true;
-
-		else return false;
+		return (*this < b || *this == b ? true : false);
     }
     
     bool bignum::operator < (int n)
@@ -1053,8 +1067,19 @@ namespace jep
 
 	void bignum::operator *= (int n)
 	{
-		bignum b(n);
-		*this = *this * b;
+		if (base != 10)
+		{
+			bignum temp(n);
+			temp.convertBase(base);
+
+			*this = *this * temp;
+		}
+
+		else
+		{
+			bignum b(n);
+			*this = *this * b;
+		}
 	}
 
 	void bignum::operator /= (bignum b)
@@ -1064,8 +1089,19 @@ namespace jep
 
 	void bignum::operator /= (int n)
 	{
-		bignum b(n);
-		*this = *this / b;
+		if (base != 10)
+		{
+			bignum temp(n);
+			temp.convertBase(base);
+
+			*this = *this * temp;
+		}
+
+		else
+		{
+			bignum b(n);
+			*this = *this / b;
+		}	
 	}
 
 	void bignum::operator += (bignum b)
@@ -1075,8 +1111,19 @@ namespace jep
 
 	void bignum::operator += (int n)
 	{
-		bignum b(n);
-		*this = *this + b;
+		if (base != 10)
+		{
+			bignum temp(n);
+			temp.convertBase(base);
+
+			*this = *this + temp;
+		}
+
+		else
+		{
+			bignum b(n);
+			*this = *this + b;
+		}
 	}
 
 	void bignum::operator -= (bignum b)
@@ -1086,8 +1133,19 @@ namespace jep
 
 	void bignum::operator -= (int n)
 	{
-		bignum b(n);
-		*this = *this - b;
+		if (base != 10)
+		{
+			bignum temp(n);
+			temp.convertBase(base);
+
+			*this = *this - temp;
+		}
+
+		else
+		{
+			bignum b(n);
+			*this = *this - b;
+		}
 	}
     
 	//-----------------

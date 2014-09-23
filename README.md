@@ -2,7 +2,6 @@
 #JEPbignum library README
 
 JEPbignum is a cross-platform library designed to calculate and accurately represent values that exceed the size limitations of the standard `int`.
-
 ----
 ###`jep::bignum` Constructors
 
@@ -109,6 +108,8 @@ your object/program, be sure to link the library with `-lJEPbignum`.
 
 ----
 ###Additional Information
+
+Functions and that take 2 values as arguments (`bignum`'s or `int`'s) automatically translate the second value to match the base of the first for computation. The base of the returning value always matches the first value passed. `bignum` operators automatically translate the value passed to match the base of `*this`.
 
 JEPbignum uses the error report class `jep::bignum_Error`. To retrieve error
 information, use the member function `getErrorReport()`, which
