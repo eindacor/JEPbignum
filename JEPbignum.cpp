@@ -502,6 +502,7 @@ namespace jep
     	int carry=0;
     	int digits=0;
     	int decimal=0;
+		//bool carry_negative = false;
 
 		//sets decimal and digit values to the highest of each number
 		decimal = (bn1.getDecimalCount() > bn2.getDecimalCount() ? bn1.getDecimalCount() : bn2.getDecimalCount());
@@ -723,6 +724,12 @@ namespace jep
 	//FUNCTION FOR CALCULATING EXPONENTS
     bignum exponent(bignum bn1, bignum bn2)
     {
+		bignum one(1);
+		one.setBase(bn1.getBase());
+		one.setPositive();
+		bignum zero;
+		zero.setBase(bn1.getBase());
+
 		if (bn2.getDecimalCount() > 0)
 			throw bignum_Error(__FILE__, __LINE__, "Cannot use decimals as exponential powers");
 
@@ -730,15 +737,10 @@ namespace jep
         bignum temp = bn1;
         
 		//n^0 always returns 1
-        if (bn2 == 0)
-        {
-            bignum one(1);
-            one.setBase(bn1.getBase());     
-            one.setPositive();
+        if (bn2 == zero)
             return one;
-        }
         
-        while (counter > 1)
+        while (counter > one)
         {
             temp *= bn1;
             counter--;
@@ -746,11 +748,7 @@ namespace jep
         
 		//if the power is negative, return 1/solution
         if (bn2.getNegative()==true)
-        {
-            bignum one(1);
-            one.setBase(bn1.getBase());
             temp = divideNumbers(one, temp);
-        }
         
         return temp;
     }
@@ -792,14 +790,14 @@ namespace jep
     
     void bignum::operator = (int n)
     {
-    	bignum temp(n);
-    	
+    	bignum temp(n);	
     	(*this) = temp;
     }
     
     void bignum::operator -- (int)
     {
     	bignum temp(1);
+		temp.setBase(base);
     	*this -= temp;
     }
     
@@ -812,23 +810,21 @@ namespace jep
     
     bool bignum::operator == (bignum b)
     {
-        bignum temp = b;
-        
         if (negative != b.getNegative())
             return false;
         
-        if (digitCount != temp.getDigitCount())
+        if (digitCount != b.getDigitCount())
             return false;
 
-		if (base != temp.getBase())
+		if (base != b.getBase())
 			return false;
 
-		if (decimalCount != temp.getDecimalCount())
+		if (decimalCount != b.getDecimalCount())
 			return false;
     
         for (int i=digitCount; i>0; i--)
         {
-            if (digits[i-1] != temp.getDigit(i-1))
+            if (digits[i-1] != b.getDigit(i-1))
                 return false;
         }
     
@@ -854,39 +850,37 @@ namespace jep
     
     bool bignum::operator < (bignum b)
     {
-		bignum temp = b;
-        
 		//if bases are different, convert the second and re-evaluate
 		if (base != b.getBase())
-			throw bignum_Error(__FILE__, __LINE__, "program attempted to compare bignums of a different base");
+			b.convertBase(base);
 
         updateDigits();
-        temp.updateDigits();
+        b.updateDigits();
         
-        if (*this == temp)
+        if (*this == b)
             return false;
         
-        if (negative==true && temp.getNegative()==false)
+        if (negative==true && b.getNegative()==false)
             return true;
         
-        if (negative==false && temp.getNegative()==true)
+        if (negative==false && b.getNegative()==true)
             return false;
         
-        if (negative==true && temp.getNegative()==true)
-            return ( absolute() > temp.absolute() );
+        if (negative==true && b.getNegative()==true)
+            return ( absolute() > b.absolute() );
         
-        if (digitCount < temp.getDigitCount())
+        if (digitCount < b.getDigitCount())
             return true;
         
-        if (digitCount > temp.getDigitCount())
+        if (digitCount > b.getDigitCount())
             return false;
          
         for (int i=digitCount-1; i>=0; i--)
         {
-            if (digits[i] < temp.getDigit(i))
+            if (digits[i] < b.getDigit(i))
                 return true;
             
-            if (digits[i] > temp.getDigit(i))
+            if (digits[i] > b.getDigit(i))
                 return false;
         }
         
@@ -917,39 +911,37 @@ namespace jep
     
     bool bignum::operator > (bignum b)
     {
-		bignum temp = b;
-
 		//if bases are different, convert the second and re-evaluate
 		if (base != b.getBase())
-			throw bignum_Error(__FILE__, __LINE__, "program attempted to compare bignums of a different base");
+			b.convertBase(base);
         
         updateDigits();
-        temp.updateDigits();
+        b.updateDigits();
         
-        if (*this == temp)
+        if (*this == b)
             return false;
         
-        if (negative==false && temp.getNegative()==true)
+        if (negative==false && b.getNegative()==true)
             return true;
         
-        if (negative==true && temp.getNegative()==false)
+        if (negative==true && b.getNegative()==false)
             return false;
         
-        if (negative==true && temp.getNegative()==true)
-            return ( absolute() < temp.absolute() );
+        if (negative==true && b.getNegative()==true)
+            return ( absolute() < b.absolute() );
         
-        if (digitCount > temp.getDigitCount())
+        if (digitCount > b.getDigitCount())
             return true;
         
-        if (digitCount < temp.getDigitCount())
+        if (digitCount < b.getDigitCount())
             return false;
         
         for (int i=digitCount-1; i>=0; i--)
         {
-            if (digits[i] > temp.getDigit(i))
+            if (digits[i] > b.getDigit(i))
                 return true;
             
-            if (digits[i] < temp.getDigit(i))
+            if (digits[i] < b.getDigit(i))
                 return false;
         }
         
@@ -985,6 +977,14 @@ namespace jep
 
 	bignum bignum::operator * (int n)
 	{
+		if (base != 10)
+		{
+			bignum temp(n);
+			temp.convertBase(base);
+
+			return multiplyNumbers(*this, temp);
+		}
+
 		bignum b(n);
 		return multiplyNumbers(*this, b);
 	}
@@ -996,6 +996,14 @@ namespace jep
 
 	bignum bignum::operator / (int n)
 	{
+		if (base != 10)
+		{
+			bignum temp(n);
+			temp.convertBase(base);
+
+			return divideNumbers(*this, temp);
+		}
+
 		bignum b(n);
 		return divideNumbers(*this, b);
 	}
@@ -1007,6 +1015,14 @@ namespace jep
 
 	bignum bignum:: operator + (int n)
 	{
+		if (base != 10)
+		{
+			bignum temp(n);
+			temp.convertBase(base);
+
+			return addNumbers(*this, temp);
+		}
+
 		bignum b(n);
 		return addNumbers(*this, b);
 	}
@@ -1018,6 +1034,14 @@ namespace jep
 
 	bignum bignum:: operator - (int n)
 	{
+		if (base != 10)
+		{
+			bignum temp(n);
+			temp.convertBase(base);
+
+			return subtractNumbers(*this, temp);
+		}
+
 		bignum b(n);
 		return subtractNumbers(*this, b);
 	}
@@ -1073,29 +1097,35 @@ namespace jep
 	//FUNCTION FOR CONVERTING BASES BY COUNTING UP/DOWN IN PARALLEL
 	void bignum::convertBaseSimple(int n)
 	{
-		bool original_negative = negative;
-
-		if (*this == 0)
-			base = n;
-
-		else
+		if (base != n)
 		{
-			bignum counter = (*this).absolute();
+			bignum zero(0);
+			zero.setBase(base);
 
-			bignum converted;
-			converted.setBase(n);
+			bool original_negative = negative;
 
-			while (counter > 0)
+			if (*this == zero)
+				base = n;
+
+			else
 			{
-				converted++;
-				counter--;
+				bignum counter = absolute();
+
+				bignum converted;
+				converted.setBase(n);
+
+				while (counter > zero)
+				{
+					converted++;
+					counter--;
+				}
+
+				*this = converted;
 			}
 
-			*this = converted;
+			negative = original_negative;
+			updateDigits();
 		}
-
-		negative = original_negative;
-		updateDigits();
 	}
 
 	//FUNCTION FOR CONVERTING BASES
@@ -1105,20 +1135,38 @@ namespace jep
 
 		bignum toAdd;
 		bignum temp;
+		bignum zero;
+		zero.setBase(n);
 		temp.setBase(n);
 
-		if (*this == 0)
+		if (*this == zero)
 			base = n;
 
 		else if (base != n)
 		{
 			int counter = digitRange;
-
-			bignum temp;
-			temp.setBase(n);
-
+			
 			for (int i = 0; i<counter; i++)
 			{
+				int marker(digitCount - i - 1);
+
+				bignum converted_digit(getDigit(marker));
+				converted_digit.convertBaseSimple(n);
+
+				bignum ten(10);
+				ten.setBase(base);
+				ten.convertBaseSimple(n);
+
+				bignum nth(marker - PRECISION);
+				nth.convertBaseSimple(n);
+
+				bignum multiplier = exponent(ten, nth);
+
+				toAdd = multiplyNumbers(converted_digit, multiplier);
+
+				temp += toAdd;
+
+				/*
 				//start marker at the left-most digit and continue through all digits
 				int marker(digitCount - i - 1);
 
@@ -1132,9 +1180,11 @@ namespace jep
 				//create a multiplier based on the position of the digit (Nth power)
 				bignum bn2(10);
 				bn2.setBase(base);
+
 				bn2.convertBaseSimple(n);
 				signed int power_int = marker - PRECISION;
 				bignum power(power_int);
+
 				power.convertBaseSimple(n);
 				bignum multiplier = exponent(bn2, power);
 
@@ -1142,6 +1192,7 @@ namespace jep
 				toAdd = multiplyNumbers(bn1, multiplier);
 
 				temp += toAdd;
+				*/
 			}
 			*this = temp;
 		}
@@ -1212,8 +1263,13 @@ namespace jep
     		return tempString;
     	}
     
-    	if (percent)
-    		temp *= bignum(100);
+		if (percent)
+		{
+			bignum hundred(100);
+			hundred.setBase(base);
+			temp *= hundred;
+		}
+    		
     	
     	int comma = (temp.getDigitCount()-PRECISION) % 3;
     
@@ -1403,6 +1459,10 @@ namespace jep
         bignum counter;
         bignum high(1);
         bignum low(1);
+
+		counter.setBase(b.getBase());
+		high.setBase(b.getBase());
+		low.setBase(b.getBase());
         
         while (counter < (b-2))
         {
