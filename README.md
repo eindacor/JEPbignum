@@ -1,8 +1,7 @@
-###JEPbignum library README
+#JEPbignum library README
 
+A cross-platform library designed to calculate and accurately represent values that exceed the size limitations of the standard `int`, `float`, and `double` data types.
 
-A cross-platform library designed to calculate and accurately represent values that exceed the size limitations of the standard `int`.
-----
 ###`jep::bignum` Constructors
 
 By default, failed or invalid constructors will throw a `jep::bignum_Error` object.	
@@ -17,7 +16,7 @@ Constructor|Description
 
 
 
-----
+
 ###Basic Mathematical `jep::bignum` Member Functions                      
 Function|Description
 :-------------------------------------------------------------	|:------------------------
@@ -29,7 +28,7 @@ Function|Description
 `jep::combinations(jep::bignum bn1, jep::bignum bn2)`			|Returns number of possible combinations when drawing `bn2` instances out of `bn1` instances total as a `jep::bignum`.
 `jep::exponent(jep::bignum bn1, jep::bignum bn2)`				|Returns `bn1` to the power of `bn2` as a `jep::bignum`.
 
-----
+
 ###Other `jep::bignum` Member Functions 
 Function|Description
 :-------------------------------------------------------------	|:------------------------
