@@ -1,7 +1,7 @@
 #JEPbignum library README
 
 A cross-platform library designed to calculate and accurately represent values that exceed the size limitations of the standard `int`, `float`, and `double` data types.
-
+----
 ###`jep::bignum` Constructors
 
 By default, failed or invalid constructors will throw a `jep::bignum_Error` object.	
