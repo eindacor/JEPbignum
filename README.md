@@ -1,7 +1,7 @@
 ###JEPbignum library README
 
 
-This library is a cross-platform library designed to calculate and accurately represent values that exceed the size limitations of the standard `int`.
+A cross-platform library designed to calculate and accurately represent values that exceed the size limitations of the standard `int`.
 ----
 ###`jep::bignum` Constructors
 
