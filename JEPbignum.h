@@ -55,7 +55,7 @@ namespace jep
     		
     		void setNegative() {negative = true;}
     		void setPositive() {negative = false;}
-    		void setBase(int n) {base = n;}
+			void setBase(int n);
     		void adjustPrecision(int n);
     		
     		bool operator < (bignum b); 
