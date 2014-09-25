@@ -81,29 +81,6 @@ namespace jep
 		bn_float.divideByTen(decimal_places);
 		
 		(*this) = bn_float;
-
-		/*
-		base = b.getBase();
-        
-    	int highestDigits=0;
-    	int decimal=0;
-    
-		highestDigits = (digitCount < b.getDigitCount() ? b.getDigitCount() : digitCount);
-    
-		decimal = (decimalCount < b.getDecimalCount() ? b.getDecimalCount() : decimalCount);
-        
-    	for (int i=(PRECISION-decimal); i<highestDigits; i++)
-    	{
-			if (i >= MAXDIGITS)
-				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
-
-			digits[i] = b.getDigit(i);
-    	}
-        
-        negative = b.getNegative();
-        
-    	updateDigits();
-		*/
 	}
 
 	bignum::bignum(double d)
@@ -130,10 +107,10 @@ namespace jep
 			decimal_places++;
 		}
 
-		bignum bn_float((int)d);
-		bn_float.divideByTen(decimal_places);
+		bignum bn_double((int)d);
+		bn_double.divideByTen(decimal_places);
 
-		(*this) = bn_float;
+		(*this) = bn_double;
 	}
 
 	bignum::bignum(vector<int> n, int offset, int set_base, bool is_negative)
@@ -1011,238 +988,6 @@ namespace jep
     	*this += temp;
     }
     
-	/*
-    bool bignum::operator != (bignum b)
-    {
-    	return !(*this==b);
-    }
-    
-    bool bignum::operator != (int n)
-    {
-    	bignum b(n);
-    	return (*this!=b);
-    }
-
-    bool bignum::operator < (bignum b)
-    {
-		
-    }
-    
-    bool bignum::operator <= (bignum b)
-    {
-		return (*this < b || *this == b ? true : false);
-    }
-    
-    bool bignum::operator < (int n)
-    {
-    	bignum b(n);
-    	updateDigits(); 
-    	return (*this < b);
-    }
-    
-    bool bignum::operator <= (int n)
-    {
-    	bignum b(n);
-    	updateDigits(); 
-    	return (*this <= b);
-    }
-    
-    bool bignum::operator > (bignum b)
-    {
-
-    }
-    
-    bool bignum::operator >= (bignum b)
-    {
-		return (*this > b || *this == b ? true : false);
-    }
-    
-    bool bignum::operator > (int n)
-    {
-		bignum b(n);
-        updateDigits(); 
-        return (*this > b);
-    }
-    
-    bool bignum::operator >= (int n)
-    {
-        bignum b(n);
-        updateDigits(); 
-        return (*this >= b);
-    }
-
-	bignum bignum::operator * (bignum b)
-	{
-		return multiplyNumbers(*this, b);
-	}
-
-	bignum bignum::operator * (int n)
-	{
-		if (base != 10)
-		{
-			bignum temp(n);
-			temp.convertBase(base);
-
-			return multiplyNumbers(*this, temp);
-		}
-
-		bignum b(n);
-		return multiplyNumbers(*this, b);
-	}
-
-	bignum bignum::operator / (bignum b)
-	{
-		return divideNumbers(*this, b);
-	}
-
-	bignum bignum::operator / (int n)
-	{
-		if (base != 10)
-		{
-			bignum temp(n);
-			temp.convertBase(base);
-
-			return divideNumbers(*this, temp);
-		}
-
-		bignum b(n);
-		return divideNumbers(*this, b);
-	}
-
-	template <typename T>
-	inline bignum bignum:: operator + (T passed)
-	{
-		bignum b(passed);
-
-		//if (b != 3)
-			//throw bignum_Error(__FILE__, __LINE__, b.getNumberString(false, false, 5));
-
-		return addNumbers(*this, b);
-	}
-	
-	bignum bignum:: operator + (int n)
-	{
-		if (base != 10)
-		{
-			bignum temp(n);
-			temp.convertBase(base);
-
-			return addNumbers(*this, temp);
-		}
-
-		bignum b(n);
-		return addNumbers(*this, b);
-	}
-	
-
-	bignum bignum:: operator - (bignum b)
-	{
-		return subtractNumbers(*this, b);
-	}
-
-	bignum bignum:: operator - (int n)
-	{
-		if (base != 10)
-		{
-			bignum temp(n);
-			temp.convertBase(base);
-
-			return subtractNumbers(*this, temp);
-		}
-
-		bignum b(n);
-		return subtractNumbers(*this, b);
-	}
-
-	void bignum::operator *= (bignum b)
-	{
-		*this = *this * b;
-	}
-
-	void bignum::operator *= (int n)
-	{
-		if (base != 10)
-		{
-			bignum temp(n);
-			temp.convertBase(base);
-
-			*this = *this * temp;
-		}
-
-		else
-		{
-			bignum b(n);
-			*this = *this * b;
-		}
-	}
-
-	void bignum::operator /= (bignum b)
-	{
-		*this = *this / b;
-	}
-
-	void bignum::operator /= (int n)
-	{
-		if (base != 10)
-		{
-			bignum temp(n);
-			temp.convertBase(base);
-
-			*this = *this * temp;
-		}
-
-		else
-		{
-			bignum b(n);
-			*this = *this / b;
-		}	
-	}
-
-	void bignum::operator += (bignum b)
-	{
-		*this = *this + b;
-	}
-
-	void bignum::operator += (int n)
-	{
-		if (base != 10)
-		{
-			bignum temp(n);
-			temp.convertBase(base);
-
-			*this = *this + temp;
-		}
-
-		else
-		{
-			bignum b(n);
-			*this = *this + b;
-		}
-	}
-
-	void bignum::operator -= (bignum b)
-	{
-		*this = *this - b;
-	}
-
-	void bignum::operator -= (int n)
-	{
-		if (base != 10)
-		{
-			bignum temp(n);
-			temp.convertBase(base);
-
-			*this = *this - temp;
-		}
-
-		else
-		{
-			bignum b(n);
-			*this = *this - b;
-		}
-	}
-	*/
-    
 	//-----------------
 	//GENERAL UTILITIES
 	//-----------------
@@ -1315,25 +1060,6 @@ namespace jep
 			
 			for (int i = 0; i<counter; i++)
 			{
-				int marker(digitCount - i - 1);
-
-				bignum converted_digit(getDigit(marker));
-				converted_digit.convertBaseSimple(n);
-
-				bignum ten(10);
-				ten.setBase(base);
-				ten.convertBaseSimple(n);
-
-				bignum nth(marker - PRECISION);
-				nth.convertBaseSimple(n);
-
-				bignum multiplier = exponent(ten, nth);
-
-				toAdd = multiplyNumbers(converted_digit, multiplier);
-
-				temp += toAdd;
-
-				/*
 				//start marker at the left-most digit and continue through all digits
 				int marker(digitCount - i - 1);
 
@@ -1341,25 +1067,22 @@ namespace jep
 					throw bignum_Error(__FILE__, __LINE__, "void bignum::convertBase(int n): The program has attempted to calculate a value outside of its limits");
 
 				//convert individual digit to a different base
-				bignum bn1(getDigit(marker));
-				bn1.convertBaseSimple(n);
+				bignum converted_digit(getDigit(marker));
+				converted_digit.convertBaseSimple(n);
 
 				//create a multiplier based on the position of the digit (Nth power)
-				bignum bn2(10);
-				bn2.setBase(base);
+				bignum ten(10);
+				ten.setBase(base);
+				ten.convertBaseSimple(n);
+				bignum nth(marker - PRECISION);
+				nth.convertBaseSimple(n);
 
-				bn2.convertBaseSimple(n);
-				signed int power_int = marker - PRECISION;
-				bignum power(power_int);
-
-				power.convertBaseSimple(n);
-				bignum multiplier = exponent(bn2, power);
+				bignum multiplier = exponent(ten, nth);
 
 				//add value to the temporary return value
-				toAdd = multiplyNumbers(bn1, multiplier);
+				toAdd = multiplyNumbers(converted_digit, multiplier);
 
 				temp += toAdd;
-				*/
 			}
 			*this = temp;
 		}

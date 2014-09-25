@@ -66,17 +66,13 @@ namespace jep
 				bignum b(passed);
 				return lessThan(*this, b);
 			}
-    		//bool operator < (bignum b); 
-			//bool operator < (int n);
 
 			template <class T>
 			bool operator <= (T passed)
 			{
 				bignum b(passed);
-				return (lessThan(*this, b) || equals(*this, b));
+				return !greaterThan(*this, b);
 			}
-    		//bool operator <= (bignum b); 
-    		//bool operator <= (int n);
     
 			template <class T>
 			bool operator > (T passed)
@@ -84,17 +80,13 @@ namespace jep
 				bignum b(passed);
 				return greaterThan(*this, b);
 			}
-    		//bool operator > (bignum b);
-			//bool operator > (int n);
 
 			template <class T>
 			bool operator >= (T passed)
 			{
 				bignum b(passed);
-				return (greaterThan(*this, b) || equals(*this, b));
+				return !lessThan(*this, b);
 			}
-    		//bool operator >= (bignum b);
-    		//bool operator >= (int n);
     
 			template <class T>
 			bool operator == (T passed)
@@ -102,8 +94,6 @@ namespace jep
 				bignum b(passed);
 				return equals(*this, b);
 			}
-    		//bool operator == (bignum b); 
-    		//bool operator == (int n);  
 
 			template <class T>
 			bool operator != (T passed)
@@ -111,8 +101,6 @@ namespace jep
 				bignum b(passed);
 				return !(equals(*this, b));
 			}
-    		//bool operator != (bignum b);
-    		//bool operator != (int n); 
 			
     		void operator -- (int n);
     		void operator ++ (int n);
@@ -126,8 +114,6 @@ namespace jep
 				bignum b(passed);
 				return multiplyNumbers(*this, b);
 			}
-    		//bignum operator * (bignum b);
-    		//bignum operator * (int n);
 
 			template <class T>
 			bignum operator / (T passed)
@@ -135,8 +121,6 @@ namespace jep
 				bignum b(passed);
 				return divideNumbers(*this, b);
 			}
-    		//bignum operator / (bignum b);
-    		//bignum operator / (int n);
 
 			template <class T>
 			bignum operator + (T passed)
@@ -144,8 +128,6 @@ namespace jep
 				bignum b(passed);
 				return addNumbers(*this, b);
 			}
-			//bignum operator + (bignum b);
-			//bignum operator + (int n);
 
 			template <class T>
 			bignum operator - (T passed)
@@ -153,8 +135,6 @@ namespace jep
 				bignum b(passed);
 				return subtractNumbers(*this, b);
 			}
-    		//bignum operator - (bignum b);
-    		//bignum operator - (int n);
 
 			template <class T>
 			void operator += (T passed)
@@ -162,8 +142,6 @@ namespace jep
 				bignum b(passed);
 				*this = *this + b;
 			}
-			//void operator += (bignum b);
-			//void operator += (int n);
 
 			template <class T>
 			void operator -= (T passed)
@@ -171,8 +149,6 @@ namespace jep
 				bignum b(passed);
 				*this = *this - b;
 			}
-			//void operator -= (bignum b);
-			//void operator -= (int n);
 
 			template <class T>
 			void operator *= (T passed)
@@ -180,8 +156,6 @@ namespace jep
 				bignum b(passed);
 				*this = *this * b;
 			}
-			//void operator *= (bignum b);
-			//void operator *= (int n);
 
 			template <class T>
 			void operator /= (T passed)
@@ -189,8 +163,6 @@ namespace jep
 				bignum b(passed);
 				*this = *this / b;
 			}
-			//void operator /= (bignum b);
-			//void operator /= (int n);
 
     		bignum absolute();
     		bignum noDecimal();
