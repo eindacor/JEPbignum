@@ -1515,7 +1515,7 @@ namespace jep
 
     bignum golden(bignum b)
     {
-        bignum temp1 = bignum(fibonacci(b));
+		bignum temp1 = bignum(fibonacci(b));
         bignum temp2 = bignum(fibonacci(b-1));
         
         return temp1/temp2;
