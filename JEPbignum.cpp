@@ -797,6 +797,9 @@ namespace jep
 	//FUNCTION FOR DIVIDING NUMBERS
     bignum divideNumbers(bignum bn1, bignum bn2)
     {
+		bignum temp;
+		bool negative_result = (bn1.getNegative() != bn2.getNegative());
+
 		if (bn1.getBase() != bn2.getBase())
 			bn2.convertBase(bn1.getBase());
 
@@ -805,20 +808,15 @@ namespace jep
 		zero.setBase(bn2.getBase());
     	if (equals(bn2, zero))
     		throw bignum_Error(__FILE__, __LINE__, "Cannot divide a number by zero");
-    	
+
 		//set base of the return value to match that of the passed values
         int baseSet=bn1.getBase();
-    	bignum temp;
     	temp.setBase(baseSet);
-    
-		//set return value to negative if the numbers passed have different signs
-    	if (bn1.getNegative() != bn2.getNegative())
-            temp.setNegative();
-    
+
 		//sets both passed values to positive for purposes of division mechanic
     	bn1.setPositive();
     	bn2.setPositive();
-    
+
     	bool remainder=false;
     	bool end=false;
     	int marker=bn1.getDigitCount()-1;
@@ -859,7 +857,10 @@ namespace jep
     		if (marker<0)
     			end = true;
     	}
-    
+
+		if (negative_result == true && temp != 0)
+			temp.setNegative();
+
     	temp.timesTen(bn2.getDecimalCount());
     	return temp;
     }
@@ -1099,7 +1100,7 @@ namespace jep
 	//returns number of non-zero digits below 0
     int bignum::getDecimalCount()
     {
-    	updateDigits();
+    	updateDigits();		
     	return decimalCount;
     }
     
@@ -1128,7 +1129,7 @@ namespace jep
 	//returns a string representing stored value
     string bignum::getNumberString(bool include_commas, bool percent, int decimal_places)
     {
-	updateDigits();
+		updateDigits();
 
         bignum temp(*this);
         string tempString;
@@ -1268,16 +1269,16 @@ namespace jep
 			}
 		}
 
-		if (decimalCount == 0 && digitCount == (PRECISION + 1) && digits[PRECISION] == 0)
-			setPositive();
+		if (decimalCount == 0 && digitCount == (PRECISION + 1))
+		{
+			if (digits[PRECISION] == 0)
+				setPositive();
+		}
 
 		//sets number of operative digits
 		//	12.077 ---> digitRange = 5
 		digitRange = digitCount - (PRECISION - decimalCount);
 	}
-    
-	//returns the golden ratio  based on fib(n)/fib(n-1)
-
     
 	//returns absolute value of bignum
     bignum bignum::absolute()

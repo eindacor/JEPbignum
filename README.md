@@ -55,40 +55,28 @@ Function|Description
 
 
 
-###Acceptable Operators 
-* `jep::bignum + jep::bignum`
-* `jep::bignum + int`
-* `jep::bignum - jep::bignum`
-* `jep::bignum - int`
-* `jep::bignum * jep::bignum`
-* `jep::bignum * int`
-* `jep::bignum / jep::bignum`
-* `jep::bignum / int`
-* `jep::bignum < jep::bignum`
-* `jep::bignum < int`
-* `jep::bignum <= jep::bignum`
-* `jep::bignum <= int`
-* `jep::bignum > jep::bignum`
-* `jep::bignum > int`
-* `jep::bignum >= jep::bignum`
-* `jep::bignum >= int`
-* `jep::bignum == jep::bignum`
-* `jep::bignum == int`
-* `jep::bignum != jep::bignum`
-* `jep::bignum != int`   
-* `jep::bignum += jep::bignum`  
-* `jep::bignum += int`	
-* `jep::bignum -= jep::bignum`      
-* `jep::bignum -= int`
-* `jep::bignum *= jep::bignum`
-* `jep::bignum *= int`
-* `jep::bignum /= jep::bignum`
-* `jep::bignum /= int`
-* `jep::bignum --`
-* `jep::bignum ++`
-* `jep::bignum = jep::bignum`
-* `jep::bignum = int`
-* `jep::bignum = std::string`
+###Acceptable Operators
+
+Operators work with data types `bignum`, `int`, `float`, `double`, and `std::string`.
+
+* `+`
+* `+=`
+* `-`
+* `-=`
+* `*`
+* `*=`
+* `/`
+* `/=`
+* `<`
+* `<=`
+* `>`
+* `>=`
+* `=`
+* `==`
+* `!=`
+* `++`
+* `--`
+
 
 
 
