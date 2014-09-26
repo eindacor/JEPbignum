@@ -1492,6 +1492,34 @@ namespace jep
     	
 		return (greaterThan(bn1, bn2) ? bn2 + temp : bn1 + temp);
     }
+
+	signed long int getInt(bignum bn)
+	{
+		signed long int temp = 0;
+		bn.convertBase(10);
+
+		if (bn.absolute() > bignum("2147483647"))
+			throw bignum_Error(__FILE__, __LINE__, "the targeted bignum is too large to convert to an integer");
+
+		for (int i = PRECISION; i < bn.getDigitCount(); i++)
+		{
+			int power = (pow((double)10, i - PRECISION));
+			int toAdd = bn.getDigit(i) * power;
+			temp += toAdd;
+		}
+
+		return (bn.getNegative() == true ? temp * -1 : temp);
+	}
+
+	long double getDouble(bignum bn)
+	{
+		
+	}
+
+	long float getFloat(bignum bn)
+	{
+
+	}
     
 	//returns average of all values passed
     bignum average(vector<bignum> numbers_passed)

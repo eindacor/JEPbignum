@@ -27,7 +27,7 @@ namespace jep
 
     class bignum
     {
-    	public:
+		public:
     		bignum(vector<int> n, int offset, int set_base, bool is_negative);
     		bignum();
     		bignum(int n);
@@ -59,7 +59,7 @@ namespace jep
     		void setPositive() {negative = false;}
 			void setBase(int n);
     		void adjustPrecision(int n);
-    		
+
 			template <class T>
 			bool operator < (T passed)
 			{
@@ -198,6 +198,9 @@ namespace jep
     bignum randomNumberForcePrecision(bignum bn1, bignum bn2, int forceprecision);
     bignum randomNumberAddPrecision(bignum bn1, bignum bn2, int addprecision);
     bignum average(vector<bignum> numbers_passed);
+	signed long int getInt(bignum bn);
+	long double getDouble(bignum bn);
+	long float getFloat(bignum bn);
 
     class bignum_Error
     {
