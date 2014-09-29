@@ -1495,10 +1495,13 @@ namespace jep
 
 	signed long int getInt(bignum bn)
 	{
+		bignum min(numeric_limits<int>::min());
+		bignum max(numeric_limits<int>::max());
+
 		signed long int temp = 0;
 		bn.convertBase(10);
 
-		if (bn.absolute() > bignum("2147483647"))
+		if (bn > max || bn < min)
 			throw bignum_Error(__FILE__, __LINE__, "the targeted bignum is too large to convert to an integer");
 
 		for (int i = PRECISION; i < bn.getDigitCount(); i++)
@@ -1513,12 +1516,44 @@ namespace jep
 
 	long double getDouble(bignum bn)
 	{
-		
+		bignum min(numeric_limits<double>::min());
+		bignum max(numeric_limits<double>::max());
+
+		double temp = 0;
+		bn.convertBase(10);
+
+		if (bn > max || bn < min)
+			throw bignum_Error(__FILE__, __LINE__, "the targeted bignum is too large to convert to a double");
+
+		for (int i = PRECISION; i < bn.getDigitCount(); i++)
+		{
+			int power = (pow((double)10, i - PRECISION));
+			int toAdd = bn.getDigit(i) * power;
+			temp += toAdd;
+		}
+
+		return (bn.getNegative() == true ? temp * -1 : temp);
 	}
 
 	long float getFloat(bignum bn)
 	{
+		bignum min(numeric_limits<float>::min());
+		bignum max(numeric_limits<float>::max());
 
+		float temp = 0;
+		bn.convertBase(10);
+
+		if (bn > max || bn < min)
+			throw bignum_Error(__FILE__, __LINE__, "the targeted bignum is too large to convert to a double");
+
+		for (int i = PRECISION; i < bn.getDigitCount(); i++)
+		{
+			int power = (pow((double)10, i - PRECISION));
+			int toAdd = bn.getDigit(i) * power;
+			temp += toAdd;
+		}
+
+		return (bn.getNegative() == true ? temp * -1 : temp);
 	}
     
 	//returns average of all values passed

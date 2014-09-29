@@ -8,6 +8,7 @@
 #include <math.h>
 #include <string>
 #include <stdlib.h>
+#include <limits>
 #include <time.h>
 
 using std::cout;
@@ -16,6 +17,7 @@ using std::endl;
 using std::vector;
 using std::list;
 using std::string;
+using std::numeric_limits;
 
 #define MAXDIGITS 1000
 #define PRECISION 30
