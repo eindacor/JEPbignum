@@ -111,7 +111,9 @@ JEPbignum.so must be placed in your shared library directory. When compiling
 your object/program, be sure to link the library with `-lJEPbignum`.
 
 
+###TODO List
 
+Debug functions that converts a `bignum` to a `float` and `double`.
 
 
 ###Additional Information
