@@ -16,7 +16,7 @@ Constructor|Description
 `jep::bignum(signed int n)`					|Creates a `jep::bignum` of base 10 with the value of `n`.
 `jep::bignum(string s)`						|Creates a `jep::bignum` of base 10 with the value of `s`.
 `jep::bignum(string s, int b)`					|Creates a `jep::bignum` of base `b` with the value of `s`.
-`jep::bignum(std::vector<int> n, int offset, int set_base, bool is_negativei)`			|Creates a `jep::bignum` of base `set_base` from a `std::vector<int>`. The first element of the vector will be set as the right-most digit of the `jep::bignum`, unless an offset is passed. Passing `true` as the `is_negative` value will make the `jep::bignum` negative.
+`jep::bignum(std::vector<int> n, int offset, int set_base, bool is_negative)`			|Creates a `jep::bignum` of base `set_base` from a `std::vector<int>`. The first element of the vector will be set as the right-most digit of the `jep::bignum`, unless an offset is passed. Passing `true` as the `is_negative` value will make the `jep::bignum` negative.
 
 
 
