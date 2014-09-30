@@ -57,7 +57,7 @@ Function|Description
 
 ###Acceptable Operators
 
-Operators work with data types `bignum`, `int`, `float`, `double`, and `std::string`.
+Operators work with data types `jep::bignum`, `int`, `float`, `double`, and `std::string`.
 
 * `+`
 * `+=`
