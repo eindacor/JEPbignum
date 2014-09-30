@@ -55,7 +55,7 @@ Function|Description
 
 
 
-###Acceptable Postfix Operators
+###Acceptable Operators
 
 Operators work with data types `bignum`, `int`, `float`, `double`, and `std::string`.
 
