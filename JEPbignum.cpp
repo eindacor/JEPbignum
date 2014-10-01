@@ -8,31 +8,29 @@ namespace jep
 
 	bignum::bignum()
 	{
-		for (int i = 0; i<MAXDIGITS; i++)
+		for (int i = 0; i < MAXDIGITS; i++)
 		{
 			digits[i] = 0;
 		}
 		decimalCount = 0;
 		base = 10;
+		negative = false;
 		updateDigits();
 	}
 
 	bignum::bignum(signed int n)
 	{
-		if (n<0)
-		{
-			negative = true;
+		bool original_negative = (n < 0);
+
+		if (n < 0)
 			n *= -1;
-		}
 
-		else negative = false;
-
-		for (int i = 0; i<MAXDIGITS; i++)
+		for (int i = 0; i < MAXDIGITS; i++)
 		{
 			digits[i] = 0;
 		}
 
-		for (int i = 0; i<20; i++)
+		for (int i = 0; i < 20; i++)
 		{
 			int modifier = (pow((double)10, i + 1));
 			int reduced = (n % modifier);
@@ -51,17 +49,22 @@ namespace jep
 		decimalCount = 0;
 		base = 10;
 		updateDigits();
+		negative = original_negative;
 	}
 
 	bignum::bignum(float f)
 	{
-		if (f<0)
-		{
-			negative = true;
+		bool original_negative = (f < 0);
+
+		if (f < 0)
 			f *= -1;
-		}
 
 		else negative = false;
+
+		for (int i = 0; i < MAXDIGITS; i++)
+		{
+			digits[i] = 0;
+		}
 
 		decimalCount = 0;
 		base = 10;
@@ -79,19 +82,23 @@ namespace jep
 
 		bignum bn_float((int)f);
 		bn_float.divideByTen(decimal_places);
-		
+
 		(*this) = bn_float;
+		updateDigits();
+		negative = original_negative;
 	}
 
 	bignum::bignum(double d)
 	{
-		if (d<0)
-		{
-			negative = true;
-			d *= -1;
-		}
+		bool original_negative = (d < 0);
 
-		else negative = false;
+		if (d < 0)
+			d *= -1;
+
+		for (int i = 0; i < MAXDIGITS; i++)
+		{
+			digits[i] = 0;
+		}
 
 		decimalCount = 0;
 		base = 10;
@@ -111,27 +118,29 @@ namespace jep
 		bn_double.divideByTen(decimal_places);
 
 		(*this) = bn_double;
+		updateDigits();
+		negative = original_negative;
 	}
 
 	bignum::bignum(vector<int> n, int offset, int set_base, bool is_negative)
 	{
 		base = set_base;
 		if (offset < 0)
-			throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+			throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
-		for (int i = 0; i<MAXDIGITS; i++)
+		for (int i = 0; i < MAXDIGITS; i++)
 		{
 			digits[i] = 0;
 		}
 
 		int count = offset;
 		for (vector<int>::iterator i = n.begin(); i != n.end(); i++)
-		{	
+		{
 			if (count >= MAXDIGITS || count < 0)
-				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
 			if (*i >= base)
-				throw bignum_Error(__FILE__, __LINE__, "One of the values passed is beyond the given base");
+				throw error_handler(__FILE__, __LINE__, "One of the values passed is beyond the given base");
 
 			digits[count] = (*i);
 			count++;
@@ -143,7 +152,7 @@ namespace jep
 
 	bignum::bignum(string s)
 	{
-		for (int i = 0; i<MAXDIGITS; i++)
+		for (int i = 0; i < MAXDIGITS; i++)
 		{
 			digits[i] = 0;
 		}
@@ -158,22 +167,22 @@ namespace jep
 		int commaNumbers = 0;
 		bool comma = false;
 
-		for (int i = 0; i<s.length(); i++)
+		for (int i = 0; i < s.length(); i++)
 		{
 			switch (s[i])
 			{
 			case ',':
 				if (decimal == true)
-					throw bignum_Error(__FILE__, __LINE__, "constructor failed, comma included after decimal point");
+					throw error_handler(__FILE__, __LINE__, "constructor failed, comma included after decimal point");
 
 				else if (comma == true && commaNumbers != 3)
-					throw bignum_Error(__FILE__, __LINE__, "constructor failed, improper use of commas");
+					throw error_handler(__FILE__, __LINE__, "constructor failed, improper use of commas");
 
 				else if (comma == false && numbersAdded > 3)
-					throw bignum_Error(__FILE__, __LINE__, "constructor failed, improper use of commas");
+					throw error_handler(__FILE__, __LINE__, "constructor failed, improper use of commas");
 
 				else if (numbersAdded == 0)
-					throw bignum_Error(__FILE__, __LINE__, "constructor failed, improper use of commas");
+					throw error_handler(__FILE__, __LINE__, "constructor failed, improper use of commas");
 
 				comma = true;
 				commaNumbers = 0;
@@ -182,7 +191,7 @@ namespace jep
 
 			case '.':
 				if (decimal == true)
-					throw bignum_Error(__FILE__, __LINE__, "constructor failed, number contains multiple decimal points");
+					throw error_handler(__FILE__, __LINE__, "constructor failed, number contains multiple decimal points");
 
 				else
 				{
@@ -193,16 +202,16 @@ namespace jep
 
 			case '-':
 				if (decimal == true)
-					throw bignum_Error(__FILE__, __LINE__, "constructor failed, negative symbol included after a decimal point");
+					throw error_handler(__FILE__, __LINE__, "constructor failed, negative symbol included after a decimal point");
 
-				if (numbersAdded>0)
-					throw bignum_Error(__FILE__, __LINE__, "constructor failed, negative symbol included after a number");
+				if (numbersAdded > 0)
+					throw error_handler(__FILE__, __LINE__, "constructor failed, negative symbol included after a number");
 
 				if (comma == true)
-					throw bignum_Error(__FILE__, __LINE__, "constructor failed, negative sign included after a comma");
+					throw error_handler(__FILE__, __LINE__, "constructor failed, negative sign included after a comma");
 
 				if (negative == true)
-					throw bignum_Error(__FILE__, __LINE__, "constructor failed, number contains multiple negative symbols");
+					throw error_handler(__FILE__, __LINE__, "constructor failed, number contains multiple negative symbols");
 
 				else
 				{
@@ -217,7 +226,7 @@ namespace jep
 				{
 					int digitToAdd = s[i] - zero;
 					if (digitToAdd >= base)
-						throw bignum_Error(__FILE__, __LINE__, "constructor failed, digit exceeds base desired");
+						throw error_handler(__FILE__, __LINE__, "constructor failed, digit exceeds base desired");
 
 					if (decimal == true)
 						decimalNumbers++;
@@ -232,17 +241,17 @@ namespace jep
 
 				else
 				{
-					throw bignum_Error(__FILE__, __LINE__, "constructor failed, invalid character(s) included");
+					throw error_handler(__FILE__, __LINE__, "constructor failed, invalid character(s) included");
 				}
 				break;
 			}
 		}
 
-		if (decimalNumbers>PRECISION)
-			throw bignum_Error(__FILE__, __LINE__, "constructor failed, number has too many decimal places");
+		if (decimalNumbers > PRECISION)
+			throw error_handler(__FILE__, __LINE__, "constructor failed, number has too many decimal places");
 
 		int startingPoint = PRECISION + (numbersAdded - decimalNumbers) - 1;
-		for (int i = 0; i<numbersToAdd.size(); i++)
+		for (int i = 0; i < numbersToAdd.size(); i++)
 		{
 			int digitToAdd = numbersToAdd.at(i);
 			int locationToSet = startingPoint - i;
@@ -254,7 +263,7 @@ namespace jep
 
 	bignum::bignum(string s, int baseGiven)
 	{
-		for (int i = 0; i<MAXDIGITS; i++)
+		for (int i = 0; i < MAXDIGITS; i++)
 		{
 			digits[i] = 0;
 		}
@@ -266,7 +275,7 @@ namespace jep
 		int numbersAdded = 0;
 		int decimalNumbers = 0;
 
-		for (int i = 0; i<s.length(); i++)
+		for (int i = 0; i < s.length(); i++)
 		{
 			bool decimal = false;
 
@@ -276,14 +285,14 @@ namespace jep
 
 			case '.':
 				if (decimal == true)
-					throw bignum_Error(__FILE__, __LINE__, "constructor failed, number contains multiple decimal points");
+					throw error_handler(__FILE__, __LINE__, "constructor failed, number contains multiple decimal points");
 
 				else decimal = true;
 				break;
 
 			case '-':
 				if (negative == true)
-					throw bignum_Error(__FILE__, __LINE__, "constructor failed, number contains multiple negative symbols");
+					throw error_handler(__FILE__, __LINE__, "constructor failed, number contains multiple negative symbols");
 
 				else negative = true;
 				break;
@@ -296,7 +305,7 @@ namespace jep
 				{
 					int digitToAdd = s[i] - zero;
 					if (digitToAdd >= base)
-						throw bignum_Error(__FILE__, __LINE__, "constructor failed, digit exceeds base desired");
+						throw error_handler(__FILE__, __LINE__, "constructor failed, digit exceeds base desired");
 
 					if (decimal == true)
 						decimalNumbers++;
@@ -310,7 +319,7 @@ namespace jep
 				{
 					int digitToAdd = s[i] - letter + 10;
 					if (digitToAdd >= base)
-						throw bignum_Error(__FILE__, __LINE__, "constructor failed, digit exceeds base desired");
+						throw error_handler(__FILE__, __LINE__, "constructor failed, digit exceeds base desired");
 
 					if (decimal == true)
 						decimalNumbers++;
@@ -320,16 +329,16 @@ namespace jep
 					break;
 				}
 
-				else throw bignum_Error(__FILE__, __LINE__, "constructor failed, invalid character(s) included");
+				else throw error_handler(__FILE__, __LINE__, "constructor failed, invalid character(s) included");
 				break;
 			}
 		}
 
-		if (decimalNumbers>PRECISION)
-			throw bignum_Error(__FILE__, __LINE__, "constructor failed, number has too many decimal places");
+		if (decimalNumbers > PRECISION)
+			throw error_handler(__FILE__, __LINE__, "constructor failed, number has too many decimal places");
 
 		int startingPoint = PRECISION + (numbersAdded - decimalNumbers) - 1;
-		for (int i = 0; i<numbersToAdd.size(); i++)
+		for (int i = 0; i < numbersToAdd.size(); i++)
 		{
 			int digitToAdd = numbersToAdd.at(i);
 			int locationToSet = startingPoint - i;
@@ -345,6 +354,8 @@ namespace jep
 
 	bool equals(bignum bn1, bignum bn2)
 	{
+
+
 		if (bn1.getNegative() != bn2.getNegative())
 			return false;
 
@@ -357,7 +368,7 @@ namespace jep
 		if (bn1.getDecimalCount() != bn2.getDecimalCount())
 			return false;
 
-		for (int i = bn1.getDigitCount(); i>0; i--)
+		for (int i = bn1.getDigitCount(); i > 0; i--)
 		{
 			if (bn1.getDigit(i - 1) != bn2.getDigit(i - 1))
 				return false;
@@ -443,468 +454,460 @@ namespace jep
 		return false;
 	}
 
-
-    //FUNCTION FOR ADDING NUMBERS OF DIFFERENT BASES
-    bignum addNumbers(bignum bn1, bignum bn2)
-    {
+	bignum addNumbers(const bignum &bn1, const bignum &bn2)
+	{
 		if (bn1.getBase() != bn2.getBase())
-			bn2.convertBase(bn1.getBase());
-
-        int base = bn1.getBase();
-        
-    	bignum sum;
+			return addNumbers(bn1, bn2.getConverted(bn1.getBase()));
 
 		//evaluate the numbers being equal
-        if (equals(bn1.absolute(), bn2.absolute()))
-        {
+		if (equals(bn1.absolute(), bn2.absolute()))
+		{
 			//	-12 + 12 or 12 + -12 ---> 0
-            if (bn1.getNegative() != bn2.getNegative())
-            {
-                bignum temp(0);
-                return temp;
-            }
-            
+			if (bn1.getNegative() != bn2.getNegative())
+			{
+				bignum temp;
+				temp.setBase(bn1.getBase());
+				return temp;
+			}
+
 			// -12 + -12 ---> -(12 + 12)
-            if (bn1.getNegative()==true && bn2.getNegative()==true)
-            {
-                bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
-                temp.setNegative();
-    			temp.updateDigits();
-                return temp;
-            }
-        }
-        
+			if (bn1.getNegative() == true && bn2.getNegative() == true)
+			{
+				bignum temp(addNumbers(bn1.absolute(), bn2.absolute()));
+				temp.setNegative();
+				temp.updateDigits();
+				return temp;
+			}
+		}
+
 		//evaluate the numbers if absolute first is larger than absolute second
-        if (greaterThan(bn1.absolute(), bn2.absolute()))
-        {
+		if (greaterThan(bn1.absolute(), bn2.absolute()))
+		{
 			//	-12 + 8 ---> -(12 - 8)
-            if (bn1.getNegative()==true && bn2.getNegative()==false)
-            {
-                bignum temp = subtractNumbers(bn1.absolute(), bn2.absolute());
-                temp.setNegative();
-    				temp.updateDigits();
-                return temp;
-            }
-            
+			if (bn1.getNegative() == true && bn2.getNegative() == false)
+			{
+				bignum temp = subtractNumbers(bn1.absolute(), bn2.absolute());
+				temp.setNegative();
+				temp.updateDigits();
+				return temp;
+			}
+
 			//	12 + -8 ---> 12 - 8
-            if (bn1.getNegative()==false && bn2.getNegative()==true)
-            {
-                return subtractNumbers(bn1.absolute(), bn2.absolute());
-            }
-            
+			if (bn1.getNegative() == false && bn2.getNegative() == true)
+			{
+				return subtractNumbers(bn1.absolute(), bn2.absolute());
+			}
+
 			//	-12 + -8 ---> -(12 + 8)
-            if (bn1.getNegative()==true && bn2.getNegative()==true)
-            {
-                bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
-                temp.setNegative();
-    				temp.updateDigits();
-                return temp;
-            }
-        }
-        
+			if (bn1.getNegative() == true && bn2.getNegative() == true)
+			{
+				bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
+				temp.setNegative();
+				temp.updateDigits();
+				return temp;
+			}
+		}
+
 		//evaluate the numbers if absolute first is smaller than absolute second
-        if (lessThan(bn1.absolute(), bn2.absolute()))
-        {
+		if (lessThan(bn1.absolute(), bn2.absolute()))
+		{
 			//	-8 + 12 ---> 12 - 8
-            if (bn1.getNegative()==true && bn2.getNegative()==false)
-            {
-                bignum temp = subtractNumbers(bn2.absolute(), bn1.absolute());
-    			temp.updateDigits();
-                return temp;
-            }
-            
+			if (bn1.getNegative() == true && bn2.getNegative() == false)
+			{
+				bignum temp = subtractNumbers(bn2.absolute(), bn1.absolute());
+				temp.updateDigits();
+				return temp;
+			}
+
 			//	8 + -12 ---> 8 - 12
-            if (bn1.getNegative()==false && bn2.getNegative()==true)
-            {
-                return subtractNumbers(bn1.absolute(), bn2.absolute());
-            }
-            
+			if (bn1.getNegative() == false && bn2.getNegative() == true)
+			{
+				return subtractNumbers(bn1.absolute(), bn2.absolute());
+			}
+
 			// -8 + -12 ---> -(8 + 12)
-            if (bn1.getNegative()==true && bn2.getNegative()==true)
-            {
-                bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
-                temp.setNegative();
-    			temp.updateDigits();
-                return temp;
-            }
-        }
-        
-    	vector<int> temp;
-    	int carry=0;
-    	int digits=0;
-    	int decimal=0;
-    
+			if (bn1.getNegative() == true && bn2.getNegative() == true)
+			{
+				bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
+				temp.setNegative();
+				temp.updateDigits();
+				return temp;
+			}
+		}
+
+		vector<int> temp;
+		int carry = 0;
+		int digits = 0;
+		int decimal = 0;
+
 		//sets decimal and digit values to the highest of each number
-		decimal = (bn1.getDecimalCount() > bn2.getDecimalCount() ? bn1.getDecimalCount() : bn2.getDecimalCount());   
+		decimal = (bn1.getDecimalCount() > bn2.getDecimalCount() ? bn1.getDecimalCount() : bn2.getDecimalCount());
 		digits = (bn1.getDigitCount() > bn2.getDigitCount() ? bn1.getDigitCount() + 1 : bn2.getDigitCount() + 1);
 
-    	for (int i=(PRECISION-decimal); i<digits+1; i++)
-    	{
+		bignum sum;
+		int base = bn1.getBase();
+
+		for (int i = (PRECISION - decimal); i < digits + 1; i++)
+		{
 			//verify function isn't checking beyond bounds of the stored array
 			if (i >= MAXDIGITS || i < 0)
-				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
-    		int tempNumber = bn1.getDigit(i) + bn2.getDigit(i);
-    		
-    		tempNumber += carry;
-    
-    		if (tempNumber>(base-1))
-    		{
-    			tempNumber-=base;
-    			carry = 1;
-    		}
-    
-    		else 
-    		{
-    			carry = 0;
-    		}
-    
-    		sum.setDigit(i, tempNumber);
-    	}
-        
-    	sum.updateDigits();
-    	sum.setBase(base);
-    	return sum;
-    }
-    
-    //FUNCTION FOR SUBTRACTING NUMBERS
-    bignum subtractNumbers(bignum bn1, bignum bn2)
-    {
+			int tempNumber = bn1.getDigit(i) + bn2.getDigit(i);
+
+			tempNumber += carry;
+
+			if (tempNumber>(base - 1))
+			{
+				tempNumber -= base;
+				carry = 1;
+			}
+
+			else
+			{
+				carry = 0;
+			}
+
+			sum.setDigit(i, tempNumber);
+		}
+
+		sum.updateDigits();
+		sum.setBase(base);
+		return sum;
+	}
+
+	bignum subtractNumbers(const bignum &bn1, const bignum &bn2)
+	{
 		if (bn1.getBase() != bn2.getBase())
-			bn2.convertBase(bn1.getBase());
+			return subtractNumbers(bn1, bn2.getConverted(bn1.getBase()));
 
-        int base = bn1.getBase();
-        bignum difference;
-    	difference.setBase(base);
-    
+		int base = bn1.getBase();
+		bignum difference;
+		difference.setBase(base);
+
 		//evaluate the numbers being of equal absolute value
-        if (equals(bn1.absolute(), bn2.absolute()))
-        {
+		if (equals(bn1.absolute(), bn2.absolute()))
+		{
 			//	-12 - 12 ---> -(12 + 12)
-            if (bn1.getNegative()==true && bn2.getNegative()==false)
-            {
-                bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
-                temp.setNegative();
-    			temp.updateDigits();
-                return temp;
-            }
-            
+			if (bn1.getNegative() == true && bn2.getNegative() == false)
+			{
+				bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
+				temp.setNegative();
+				temp.updateDigits();
+				return temp;
+			}
+
 			//	12 - -12 ---> 12 + 12
-            if (bn1.getNegative()==false && bn2.getNegative()==true)
-            {
-                return addNumbers(bn1.absolute(), bn2.absolute());
-            }
-            
+			if (bn1.getNegative() == false && bn2.getNegative() == true)
+			{
+				return addNumbers(bn1.absolute(), bn2.absolute());
+			}
+
 			//	-12 - -12 ---> 0
-            if (bn1.getNegative()==true && bn2.getNegative()==true)
-            {
+			if (bn1.getNegative() == true && bn2.getNegative() == true)
+			{
 				bignum temp(0);
-                return temp;
-            }
-        }
-        
+				return temp;
+			}
+		}
+
 		//evaluate the numbers if absolute first is larger than absolute second
-        if (greaterThan(bn1.absolute(), bn2.absolute()))
-        {
+		if (greaterThan(bn1.absolute(), bn2.absolute()))
+		{
 			//	-12 - 8 ---> -(12 + 8)
-            if (bn1.getNegative()==true && bn2.getNegative()==false)
-            {
-                bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
-                temp.setNegative();
-    			temp.updateDigits();
-                return temp;
-            }
-            
+			if (bn1.getNegative() == true && bn2.getNegative() == false)
+			{
+				bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
+				temp.setNegative();
+				temp.updateDigits();
+				return temp;
+			}
+
 			//	12 - -8 ---> 12 + 8
-            if (bn1.getNegative()==false && bn2.getNegative()==true)
-            {
-                return addNumbers(bn1.absolute(), bn2.absolute());
-            }
-            
+			if (bn1.getNegative() == false && bn2.getNegative() == true)
+			{
+				return addNumbers(bn1.absolute(), bn2.absolute());
+			}
+
 			//	-12 - -8 ---> -(12 - 8)
-            if (bn1.getNegative()==true && bn2.getNegative()==true)
-            {
-                bignum temp = subtractNumbers(bn1.absolute(), bn2.absolute());
-                temp.setNegative();
-    			temp.updateDigits();
-                return temp;
-            }
-        }
-        
+			if (bn1.getNegative() == true && bn2.getNegative() == true)
+			{
+				bignum temp = subtractNumbers(bn1.absolute(), bn2.absolute());
+				temp.setNegative();
+				temp.updateDigits();
+				return temp;
+			}
+		}
+
 		//evaluate the numbers if absolute first is smaller than absolute second
-        if (lessThan(bn1.absolute(), bn2.absolute()))
-        {
+		if (lessThan(bn1.absolute(), bn2.absolute()))
+		{
 			//	8 - 12 ---> -(12 - 8)
-            if (bn1.getNegative()==false && bn2.getNegative()==false)
-            {
-                bignum temp = subtractNumbers(bn2.absolute(), bn1.absolute());
-                temp.setNegative();
-    			temp.updateDigits();
-                return temp;
-            }
-            
+			if (bn1.getNegative() == false && bn2.getNegative() == false)
+			{
+				bignum temp = subtractNumbers(bn2.absolute(), bn1.absolute());
+				temp.setNegative();
+				temp.updateDigits();
+				return temp;
+			}
+
 			//	-8 - 12 ---> -(8 + 12)
-            if (bn1.getNegative()==true && bn2.getNegative()==false)
-            {
-                bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
-                temp.setNegative();
-    			temp.updateDigits();
-                return temp;
-            }
-            
+			if (bn1.getNegative() == true && bn2.getNegative() == false)
+			{
+				bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
+				temp.setNegative();
+				temp.updateDigits();
+				return temp;
+			}
+
 			//	8 - -12 ---> 8 + 12
-            if (bn1.getNegative()==false && bn2.getNegative()==true)
-            {
-                return addNumbers(bn1.absolute(), bn2.absolute());
-            }
-            
+			if (bn1.getNegative() == false && bn2.getNegative() == true)
+			{
+				return addNumbers(bn1.absolute(), bn2.absolute());
+			}
+
 			//	-8 - -12 ---> (12 - 8)
-            if (bn1.getNegative()==true && bn2.getNegative()==true)
-            {
-                return subtractNumbers(bn2.absolute(), bn1.absolute());
-            }
-        }
-    	  
-      	vector<int> temp;
-    	int carry=0;
-    	int digits=0;
-    	int decimal=0;
+			if (bn1.getNegative() == true && bn2.getNegative() == true)
+			{
+				return subtractNumbers(bn2.absolute(), bn1.absolute());
+			}
+		}
+
+		vector<int> temp;
+		int carry = 0;
+		int digits = 0;
+		int decimal = 0;
 		//bool carry_negative = false;
 
 		//sets decimal and digit values to the highest of each number
 		decimal = (bn1.getDecimalCount() > bn2.getDecimalCount() ? bn1.getDecimalCount() : bn2.getDecimalCount());
 		digits = (bn1.getDigitCount() > bn2.getDigitCount() ? bn1.getDigitCount() + 1 : bn2.getDigitCount() + 1);
-    
-    	for (int i=(PRECISION-decimal); i<digits+1; i++)
-    	{
+
+		for (int i = (PRECISION - decimal); i < digits + 1; i++)
+		{
 			//verify function isn't checking beyond bounds of the stored array
 			if (i >= MAXDIGITS || i < 0)
-				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
-    		int tempNumber = bn1.getDigit(i) - bn2.getDigit(i);
-    		
-    		tempNumber -= carry;
-    
-    		if (tempNumber<0)
-    		{
-    			tempNumber+=base;
-    			carry = 1;
-    		}
-    
-    		else 
-    		{
-    			carry = 0;
-    		}
-    
-    		difference.setDigit(i, tempNumber);
-    	}
-    
-        difference.updateDigits();
-        difference.setBase(base);
-    	return difference;
-    }
-    
+			int tempNumber = bn1.getDigit(i) - bn2.getDigit(i);
+
+			tempNumber -= carry;
+
+			if (tempNumber < 0)
+			{
+				tempNumber += base;
+				carry = 1;
+			}
+
+			else
+			{
+				carry = 0;
+			}
+
+			difference.setDigit(i, tempNumber);
+		}
+
+		difference.updateDigits();
+		difference.setBase(base);
+		return difference;
+	}
+
 	//FUNCTION FOR MULTIPLYING BIGNUMS BY INTS
-    bignum multiplyNumbersSimple(bignum bn1, int n)
-    {  
-        if (n==0)
-        {
-        	bignum zero;
-        	zero.setBase(bn1.getBase());
-           	return zero;
-        }
-        
-        bignum temp(bn1);
-        
-		//if both numbers are negative, make the result positive
-        if (bn1.getNegative() == n<0)
-            temp.setPositive();
-        
-		//add the first number to itself n times
-        for (int i=0; i<(n-1); i++)
-        {
-            temp += bn1;
-        }
-        
-        temp.updateDigits();
-        return temp;
-    }
-    
-	//FUNCTION FOR MULTIPLYING NUMBERS
-    bignum multiplyNumbers(bignum bn1, bignum bn2)
-    {
-		if (bn1.getBase() != bn2.getBase())
-			bn2.convertBase(bn1.getBase());
+	bignum multiplyNumbersSimple(const bignum &bn1, int n)
+	{
+		if (n == 0)
+		{
+			bignum zero;
+			zero.setBase(bn1.getBase());
+			return zero;
+		}
 
-        bignum temp(0);
-        temp.setBase(bn1.getBase());
-    
+		bignum temp(bn1);
+
+		//if both numbers are negative, make the result positive
+		if (bn1.getNegative() == n < 0)
+			temp.setPositive();
+
+		//add the first number to itself n times
+		for (int i = 0; i < (n - 1); i++)
+		{
+			temp += bn1;
+		}
+
+		temp.updateDigits();
+		return temp;
+	}
+
+	//FUNCTION FOR MULTIPLYING NUMBERS
+	bignum multiplyNumbers(const bignum &bn1, const bignum &bn2)
+	{
+		if (bn1.getBase() != bn2.getBase())
+			return multiplyNumbers(bn1, bn2.getConverted(bn1.getBase()));
+
+		bignum temp(0);
+		temp.setBase(bn1.getBase());
+
 		//if either number is 0, return 0
 		if (equals(bn1, temp) || equals(bn2, temp))
-    		return temp;
-    	
+			return temp;
+
 		//multiply bn1 by each digit of bn2 independently, then add the values together
-    	int counter = bn2.getDigitRange();
-    	for (int i=0; i<counter; i++)
-    	{
-    		int toMultiply = (PRECISION-bn2.getDecimalCount()) + i;
+		int counter = bn2.getDigitRange();
+		for (int i = 0; i < counter; i++)
+		{
+			int toMultiply = (PRECISION - bn2.getDecimalCount()) + i;
 
 			//verify function isn't checking beyond bounds of the stored array
 			if (toMultiply >= MAXDIGITS || toMultiply < 0)
-				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
-    		bignum toAdd = multiplyNumbersSimple(bn1.absolute(), bn2.getDigit(toMultiply) );
+			bignum toAdd = multiplyNumbersSimple(bn1.absolute(), bn2.getDigit(toMultiply));
 
 			//verify toAdd would not overstep bounds
 			if (toAdd.getDigitCount() == MAXDIGITS && i > 0)
-				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
-    		toAdd.timesTen(i);
-    		temp += toAdd;
-    	}
-     
-    	if (bn1.getNegative() != bn2.getNegative())
-            temp.setNegative();
-    
+			toAdd.timesTen(i);
+			temp += toAdd;
+		}
+
+		if (bn1.getNegative() != bn2.getNegative())
+			temp.setNegative();
+
 		//adjust for added decimal places during multiplication
-    	temp.divideByTen(bn2.getDecimalCount());
-    
-    	temp.updateDigits();
-    	return temp;   
-    }
-    
+		temp.divideByTen(bn2.getDecimalCount());
+
+		temp.updateDigits();
+		return temp;
+	}
+
 	//FUNCTION FOR DIVIDING USING REPEATED SUBTRACTION
-    bignum divideNumbersSimple (bignum bn1, bignum bn2, bool &remainder)
-    {
-    	bignum counter;
-    	counter.setBase(bn1.getBase());
-    	
-    	while (!lessThan(bn1, bn2))
-    	{
-    		bn1-=bn2;
-    		counter++;
-    	}
-    
+	bignum divideNumbersSimple(const bignum &bn1, const bignum &bn2, bool &remainder)
+	{
+		bignum temp(bn1);
+		bignum counter;
+		counter.setBase(bn1.getBase());
+
+		while (!lessThan(temp, bn2))
+		{
+			temp -= bn2;
+			counter++;
+		}
+
 		//adjusts bool passed for remainder
-    	if (equals(counter * bn2, bn1))
-    		remainder = false;
-    
-    	else remainder = true;
-    
-    	return counter;
-    }
-    
+		if (equals(counter * bn2, temp))
+			remainder = false;
+
+		else remainder = true;
+
+		return counter;
+	}
+
 	//FUNCTION FOR DIVIDING NUMBERS
-    bignum divideNumbers(bignum bn1, bignum bn2)
-    {
+	bignum divideNumbers(const bignum &bn1, const bignum &bn2)
+	{
 		bignum temp;
 		bool negative_result = (bn1.getNegative() != bn2.getNegative());
 
 		if (bn1.getBase() != bn2.getBase())
-			bn2.convertBase(bn1.getBase());
+			return divideNumbers(bn1, bn2.getConverted(bn1.getBase()));
 
 		//throws an exception if the program is attempting to divide by zero
-		bignum zero(0);
-		zero.setBase(bn2.getBase());
-    	if (equals(bn2, zero))
-    		throw bignum_Error(__FILE__, __LINE__, "Cannot divide a number by zero");
+		if (equals(bn2, bignum(0)))
+			throw error_handler(__FILE__, __LINE__, "Cannot divide a number by zero");
 
 		//set base of the return value to match that of the passed values
-        int baseSet=bn1.getBase();
-    	temp.setBase(baseSet);
+		int baseSet = bn1.getBase();
+		temp.setBase(baseSet);
 
-		//sets both passed values to positive for purposes of division mechanic
-    	bn1.setPositive();
-    	bn2.setPositive();
-
-    	bool remainder=false;
-    	bool end=false;
-    	int marker=bn1.getDigitCount()-1;
+		bool remainder = false;
+		bool end = false;
+		int marker = bn1.getDigitCount() - 1;
 
 		//starting with the left-most digit, create a bignumber of that digit that matches the set base
-    	bignum numberToCompare(bn1.getDigit(marker));
-    	numberToCompare.setBase(baseSet);
+		bignum number_to_compare(bn1.getDigit(marker));
+		number_to_compare.setBase(baseSet);
 
 		//ignore decimal places when comparing dividend to digits of the divisor
-    	bignum nextNumber = divideNumbersSimple(numberToCompare, bn2.noDecimal(), remainder);
-    	bignum numberToSubtract;
-    	numberToSubtract.setBase(baseSet);
-    
-    	while (end != true)
-    	{	
-    		if (remainder==false && marker < PRECISION-bn1.getDecimalCount() )
-    			end = true;
-    
+		bignum nextNumber = divideNumbersSimple(number_to_compare, bn2.absolute().noDecimal(), remainder);
+		bignum number_to_subtract;
+		number_to_subtract.setBase(baseSet);
+
+		while (end != true)
+		{
+			if (remainder == false && marker < PRECISION - bn1.getDecimalCount())
+				end = true;
+
 			if (marker >= MAXDIGITS || marker < 0)
-				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
-    		temp.setDigit(marker, nextNumber.getDigit(PRECISION));
-    		marker--;
-    	
-    		numberToSubtract = bn2.noDecimal() * nextNumber;
-    		numberToSubtract.updateDigits();
-    		numberToCompare -= numberToSubtract;
-    		numberToCompare.timesTen(1);
-    
+			temp.setDigit(marker, nextNumber.getDigit(PRECISION));
+			marker--;
+
+			number_to_subtract = bn2.absolute().noDecimal() * nextNumber;
+			number_to_subtract.updateDigits();
+			number_to_compare -= number_to_subtract;
+			number_to_compare.timesTen(1);
+
 			if (marker >= MAXDIGITS)
-				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
-    		if (marker>=0)
-    			numberToCompare += bn1.getDigit(marker);
-    
-    		nextNumber = divideNumbersSimple(numberToCompare, bn2.noDecimal(), remainder);
-    
-    		if (marker<0)
-    			end = true;
-    	}
+			if (marker >= 0)
+				number_to_compare += bn1.getDigit(marker);
+
+			nextNumber = divideNumbersSimple(number_to_compare, bn2.absolute().noDecimal(), remainder);
+
+			if (marker < 0)
+				end = true;
+		}
 
 		if (negative_result == true && temp != 0)
 			temp.setNegative();
 
-    	temp.timesTen(bn2.getDecimalCount());
-    	return temp;
-    }
-    
+		temp.timesTen(bn2.getDecimalCount());
+		return temp;
+	}
+
 	//FUNCTION FOR CALCULATING FACTORIALS
-    bignum factorial(bignum bn)
-    {
+	bignum factorial(const bignum &bn)
+	{
 		if (!lessThan(bn, bignum(500)))
-			throw bignum_Error(__FILE__, __LINE__, "The desired calculation is too large");
+			throw error_handler(__FILE__, __LINE__, "The desired calculation is too large");
 
-        bignum temp(bn);
-    
-        for (bignum counter(bn); greaterThan(counter, (int) 1) ; counter--)
-        {
-            if (greaterThan(bn, counter))
-                temp *= counter;
-        }
-    
-    	temp.updateDigits();
-    	return temp;
-    }
-    
-	//FUNCTION FOR CALCULATING PERMUTATIONS
-    bignum combinations(bignum bn1, bignum bn2)
-    {
+		bignum temp(bn);
+
+		for (bignum counter(bn); greaterThan(counter, (int)1); counter--)
+		{
+			if (greaterThan(bn, counter))
+				temp *= counter;
+		}
+
+		temp.updateDigits();
+		return temp;
+	}
+
+	//FUNCTION FOR CALCULATING COMBINATIONS
+	bignum combinations(const bignum &bn1, const bignum &bn2)
+	{
 		if (bn1.getBase() != bn2.getBase())
-			bn2.convertBase(bn1.getBase());
+			return combinations(bn1, bn2.getConverted(bn1.getBase()));
 
-    	bignum first = factorial(bn1);
-    	bignum second = bn1-bn2;
-    	bignum third = factorial(second);
-    	bignum fourth = factorial(bn2);
-    	bignum fifth = third * fourth;
-    
-    	bignum temp = divideNumbers(first, fifth);
-    
-    	return temp;
-    }
-    
+		bignum first = factorial(bn1);
+		bignum second = bn1 - bn2;
+		bignum third = factorial(second);
+		bignum fourth = factorial(bn2);
+		bignum fifth = third * fourth;
+
+		bignum temp = divideNumbers(first, fifth);
+
+		return temp;
+	}
+
 	//FUNCTION FOR CALCULATING EXPONENTS
-    bignum exponent(bignum bn1, bignum bn2)
-    {
+	bignum exponent(const bignum &bn1, const bignum &bn2)
+	{
 		if (bn1.getBase() != bn2.getBase())
-			bn2.convertBase(bn1.getBase());
+			return exponent(bn1, bn2.getConverted(bn1.getBase()));
 
 		bignum one(1);
 		one.setBase(bn1.getBase());
@@ -913,82 +916,82 @@ namespace jep
 		zero.setBase(bn1.getBase());
 
 		if (bn2.getDecimalCount() > 0)
-			throw bignum_Error(__FILE__, __LINE__, "Cannot use decimals as exponential powers");
+			throw error_handler(__FILE__, __LINE__, "Cannot use decimals as exponential powers");
 
-        bignum counter = bn2.absolute();
-        bignum temp = bn1;
-        
+		bignum counter = bn2.absolute();
+		bignum temp(bn1);
+
 		//n^0 always returns 1
-        if (equals(bn2, zero))
-            return one;
-        
-        while (greaterThan(counter, one))
-        {
-            temp *= bn1;
-            counter--;
-        }
-        
+		if (equals(bn2, zero))
+			return one;
+
+		while (greaterThan(counter, one))
+		{
+			temp *= bn1;
+			counter--;
+		}
+
 		//if the power is negative, return 1/solution
-        if (bn2.getNegative()==true)
-            temp = divideNumbers(one, temp);
-        
-        return temp;
-    }
+		if (bn2.getNegative() == true)
+			temp = divideNumbers(one, temp);
+
+		return temp;
+	}
 
 	//----------------
-    //BIGNUM OPERATORS
+	//BIGNUM OPERATORS
 	//----------------
 
-    void bignum::operator = (bignum b)
-    {
+	void bignum::operator = (bignum b)
+	{
 		base = b.getBase();
-        
-    	int highestDigits=0;
-    	int decimal=0;
-    
+
+		int highestDigits = 0;
+		int decimal = 0;
+
 		highestDigits = (digitCount < b.getDigitCount() ? b.getDigitCount() : digitCount);
-    
+
 		decimal = (decimalCount < b.getDecimalCount() ? b.getDecimalCount() : decimalCount);
-        
-    	for (int i=(PRECISION-decimal); i<highestDigits; i++)
-    	{
+
+		for (int i = (PRECISION - decimal); i < highestDigits; i++)
+		{
 			if (i >= MAXDIGITS)
-				throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
 			digits[i] = b.getDigit(i);
-    	}
-        
-        negative = b.getNegative();
-        
-    	updateDigits();
-    }
-    
-    void bignum::operator = (string s)
-    {
-    	bignum temp(s);   	
-    	(*this) = temp;
-    }
-    
-    void bignum::operator = (int n)
-    {
-    	bignum temp(n);	
-    	(*this) = temp;
-    }
-    
-    void bignum::operator -- (int)
-    {
-    	bignum temp(1);
+		}
+
+		negative = b.getNegative();
+
+		updateDigits();
+	}
+
+	void bignum::operator = (string s)
+	{
+		bignum temp(s);
+		(*this) = temp;
+	}
+
+	void bignum::operator = (int n)
+	{
+		bignum temp(n);
+		(*this) = temp;
+	}
+
+	void bignum::operator -- (int)
+	{
+		bignum temp(1);
 		temp.setBase(base);
-    	*this -= temp;
-    }
-    
-    void bignum::operator ++ (int)
-    {
-    	bignum temp(1);
+		*this -= temp;
+	}
+
+	void bignum::operator ++ (int)
+	{
+		bignum temp(1);
 		temp.setBase(base);
-    	*this += temp;
-    }
-    
+		*this += temp;
+	}
+
 	//-----------------
 	//GENERAL UTILITIES
 	//-----------------
@@ -1001,7 +1004,7 @@ namespace jep
 		for (int i = 0; i < digitRange; i++)
 		{
 			if (digits[marker + i] >= n)
-				throw bignum_Error(__FILE__, __LINE__, "the specified base is smaller than one or more of the bignum digits, could not set base manually");
+				throw error_handler(__FILE__, __LINE__, "the specified base is smaller than one or more of the bignum digits, could not set base manually");
 		}
 
 		base = n;
@@ -1037,8 +1040,9 @@ namespace jep
 			}
 
 			negative = original_negative;
-			updateDigits();
 		}
+
+		updateDigits();
 	}
 
 	//FUNCTION FOR CONVERTING BASES
@@ -1058,14 +1062,14 @@ namespace jep
 		else if (base != n)
 		{
 			int counter = digitRange;
-			
-			for (int i = 0; i<counter; i++)
+
+			for (int i = 0; i < counter; i++)
 			{
 				//start marker at the left-most digit and continue through all digits
 				int marker(digitCount - i - 1);
 
 				if (marker >= MAXDIGITS || marker < 0)
-					throw bignum_Error(__FILE__, __LINE__, "void bignum::convertBase(int n): The program has attempted to calculate a value outside of its limits");
+					throw error_handler(__FILE__, __LINE__, "void bignum::convertBase(int n): The program has attempted to calculate a value outside of its limits");
 
 				//convert individual digit to a different base
 				bignum converted_digit(getDigit(marker));
@@ -1088,156 +1092,142 @@ namespace jep
 			*this = temp;
 		}
 		negative = original_negative;
-	}
-    
-	//returns number of digits including all decimal places set by PRECISION macro
-    int bignum::getDigitCount()
-    {
-    	updateDigits();
-    	return digitCount;
-    }
-    
-	//returns number of non-zero digits below 0
-    int bignum::getDecimalCount()
-    {
-    	updateDigits();		
-    	return decimalCount;
-    }
-    
-	//returns a string char from an int passed
-    string bignum::getDigitString(int n)
-    {
-		string temp;
-        
-        if (n<10)
-        {
-            char toAdd = '0';
-            toAdd += n;
-            temp += toAdd;
-            return temp;
-        }
-            
-        else 
-        {
-            char toAdd = 'A';
-            toAdd += (n-10);
-            temp += toAdd;
-            return temp;
-        }
-    }
-    
-	//returns a string representing stored value
-    string bignum::getNumberString(bool include_commas, bool percent, int decimal_places)
-    {
 		updateDigits();
+	}
 
-        bignum temp(*this);
-        string tempString;
-       
-        if (decimal_places>PRECISION)
-            decimal_places=PRECISION;
-       
-    	temp.updateDigits();
-  
-    	if (equals(temp, bignum(0)))
-    	{
-    		tempString += "0";
-    		
-    		for (int i=0; i<decimal_places; i++)
-    		{
-    			tempString += (i==0 ? ".0" : "0");
-    		}
-    		
-    		if (percent == true)
-    			tempString +="%";
-    		
-    		return tempString;
-    	}
-    
+	//returns a string char from an int passed
+	string bignum::getDigitString(int n) const
+	{
+		string temp;
+
+		if (n < 10)
+		{
+			char toAdd = '0';
+			toAdd += n;
+			temp += toAdd;
+			return temp;
+		}
+
+		else
+		{
+			char toAdd = 'A';
+			toAdd += (n - 10);
+			temp += toAdd;
+			return temp;
+		}
+	}
+
+	//returns a string representing stored value
+	string bignum::getNumberString(bool include_commas, bool percent, int decimal_places) const
+	{
+		bignum temp(*this);
+		string tempString;
+
+		if (decimal_places > PRECISION)
+			decimal_places = PRECISION;
+
+		temp.updateDigits();
+
+		if (equals(temp, bignum(0)))
+		{
+			tempString += "0";
+
+			for (int i = 0; i < decimal_places; i++)
+			{
+				tempString += (i == 0 ? ".0" : "0");
+			}
+
+			if (percent == true)
+				tempString += "%";
+
+			return tempString;
+		}
+
 		if (percent)
 		{
 			bignum hundred(100);
 			hundred.setBase(base);
 			temp *= hundred;
 		}
-    		
-    	
-    	int comma = (temp.getDigitCount()-PRECISION) % 3;
-    
-    	if (negative==true)
-    		 tempString += "-";
-    
-    	temp.adjustPrecision(decimal_places);
-    
-        int counter = temp.getDigitRange();
-    	for (int i=0; i<counter; i++)
-    	{
-    	    int target = temp.getDigitCount()-i-1;
-    	    
-    		if (target == (PRECISION-1))
-    			tempString += ".";
-    
-    		else if (comma==0 && (temp.getDigitCount()-i) >= PRECISION)
-    		{
-    			if (i>0 && include_commas==true)
-    				tempString += ",";
-    				 
-    			comma = 3;
-    		}
-    
-            tempString += temp.getDigitString(temp.getDigit(target));
-    
-    		comma--;
-    	}
-    	
-    	if(percent==true)
-    		tempString += "%";
-    
-    	return tempString;
-    }
-    
-    void bignum::decrement()
-    {
-    	bignum temp(1);
-    	*this -= temp;
-    	updateDigits();
-    }
-    
+
+
+		int comma = (temp.getDigitCount() - PRECISION) % 3;
+
+		if (negative == true)
+			tempString += "-";
+
+		temp.adjustPrecision(decimal_places);
+
+		int counter = temp.getDigitRange();
+		for (int i = 0; i < counter; i++)
+		{
+			int target = temp.getDigitCount() - i - 1;
+
+			if (target == (PRECISION - 1))
+				tempString += ".";
+
+			else if (comma == 0 && (temp.getDigitCount() - i) >= PRECISION)
+			{
+				if (i>0 && include_commas == true)
+					tempString += ",";
+
+				comma = 3;
+			}
+
+			tempString += temp.getDigitString(temp.getDigit(target));
+
+			comma--;
+		}
+
+		if (percent == true)
+			tempString += "%";
+
+		return tempString;
+	}
+
+	void bignum::decrement()
+	{
+		bignum temp(1);
+		temp.setBase(base);
+		*this -= temp;
+		updateDigits();
+	}
+
 	//multiplies the number by 10 in its native base by literally shifting digit
-    void bignum::timesTen(int n)
-    {
+	void bignum::timesTen(int n)
+	{
 		if (digitCount >= MAXDIGITS - 1)
-			throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+			throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
-        for (int i=0; i<n; i++)
-    	{
-    		for (int c=0; c<digitRange; c++)
-    		{
-    			digits[digitCount-c] = digits[digitCount-1-c];
-    		}
-    
-    		digits[PRECISION-decimalCount] = 0;
-    		updateDigits();
-    	}
-    	updateDigits();
-    }
-    
+		for (int i = 0; i < n; i++)
+		{
+			for (int c = 0; c < digitRange; c++)
+			{
+				digits[digitCount - c] = digits[digitCount - 1 - c];
+			}
+
+			digits[PRECISION - decimalCount] = 0;
+			updateDigits();
+		}
+		updateDigits();
+	}
+
 	//divides the number by 10 in its native base by literally shifting digit
-    void bignum::divideByTen(int n)
-    {
-		for (int i=n; i>0; i--)
-    	{
-    		for (int c=(PRECISION-decimalCount); c <= digitCount; c++)
-    		{
+	void bignum::divideByTen(int n)
+	{
+		for (int i = n; i > 0; i--)
+		{
+			for (int c = (PRECISION - decimalCount); c <= digitCount; c++)
+			{
 				if (c == 0)
-					throw bignum_Error(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+					throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
-    			digits[c-1] = digits[c];
-    		}
-    		updateDigits();
-    	}
-    	updateDigits();
-    }
+				digits[c - 1] = digits[c];
+			}
+			updateDigits();
+		}
+		updateDigits();
+	}
 
 	//refreshes digitCount and decimalCount
 	void bignum::updateDigits()
@@ -1245,7 +1235,7 @@ namespace jep
 		digitCount = 0;
 		decimalCount = 0;
 
-		for (int i = MAXDIGITS - 1; i>0; i--)
+		for (int i = MAXDIGITS - 1; i > 0; i--)
 		{
 			if (i == PRECISION)
 			{
@@ -1253,14 +1243,14 @@ namespace jep
 				break;
 			}
 
-			if (digits[i]>0)
+			if (digits[i] > 0)
 			{
 				digitCount = (i + 1);
 				break;
 			}
 		}
 
-		for (int i = 0; i<PRECISION; i++)
+		for (int i = 0; i < PRECISION; i++)
 		{
 			if (digits[i]>0)
 			{
@@ -1279,80 +1269,81 @@ namespace jep
 		//	12.077 ---> digitRange = 5
 		digitRange = digitCount - (PRECISION - decimalCount);
 	}
-    
-	//returns absolute value of bignum
-    bignum bignum::absolute()
-    {
-        bignum temp = *this;
-    	temp.updateDigits();
-        temp.setPositive();
-        return temp;
-    }
-    
-    //used in calculation for long division
-    bignum bignum::noDecimal()
-    {
-    	bignum temp(*this);
-    	temp.timesTen(getDecimalCount());
-    	return temp;
-    }
-    
-	//returns bignum with no decimal places
-    bignum bignum::withoutDecimals()
-    {
-        bignum temp(*this);
-        
-        for (int i=0; i<PRECISION; i++)
-        {
-            temp.setDigit(i, 0);
-        }
-        
-        return temp;
-    }
-    
-	//rounds the number to a specific number of decimal places
-    void bignum::adjustPrecision(int n)
-    {
-    	int marker = PRECISION-n;
-    	
-    	if (digits[marker-1] >= (base/2))
-    	{
-    		bignum increase;
-    		increase.setBase(base);
-    		increase.setDigit(marker, 1);
-    		
-    		(*this) += increase;
-    	}
-    	
-    	for (int i=0; i<marker; i++)
-    		digits[i]=0;
-    		
-    	updateDigits();
-    }
 
-    bignum golden(bignum b)
-    {
+	//returns absolute value of bignum
+	bignum bignum::absolute() const
+	{
+		bignum temp = *this;
+		temp.updateDigits();
+		temp.setPositive();
+		return temp;
+	}
+
+	//used in calculation for long division
+	bignum bignum::noDecimal() const
+	{
+		bignum temp(*this);
+		temp.timesTen(getDecimalCount());
+		return temp;
+	}
+
+	//returns bignum with no decimal places
+	bignum bignum::withoutDecimals() const
+	{
+		bignum temp(*this);
+
+		for (int i = 0; i < PRECISION; i++)
+		{
+			temp.setDigit(i, 0);
+		}
+
+		return temp;
+	}
+
+	//rounds the number to a specific number of decimal places
+	void bignum::adjustPrecision(int n)
+	{
+		int marker = PRECISION - n;
+
+		if (digits[marker - 1] >= (base / 2))
+		{
+			bignum increase;
+			increase.setBase(base);
+			increase.setDigit(marker, 1);
+
+			(*this) += increase;
+			updateDigits();
+		}
+
+		for (int i = 0; i < marker; i++)
+			digits[i] = 0;
+
+		updateDigits();
+	}
+
+	bignum golden(const bignum &b)
+	{
 		bignum temp1 = bignum(fibonacci(b));
-        bignum temp2 = bignum(fibonacci(b-1));
-        
-        return (temp2 == 0 ? 0 : temp1/temp2);
-    }
-    
-    bignum golden(int n)
-    {
-        bignum temp(n);
-        return golden(temp);   
-    }
-    
+		bignum temp2 = bignum(fibonacci(b - 1));
+
+		return (temp2 == 0 ? 0 : temp1 / temp2);
+	}
+
+	bignum golden(int n)
+	{
+		bignum temp(n);
+		return golden(temp);
+	}
+
 	//return fibonacci number at location b of the sequence
-    bignum fibonacci(bignum b)
-    {
+	bignum fibonacci(const bignum &b)
+	{
 		if (b.getDecimalCount() > 0)
-			throw bignum_Error(__FILE__, __LINE__, "fibonacci sequence values may only be derived from integers");
+			throw error_handler(__FILE__, __LINE__, "fibonacci sequence values may only be derived from integers");
 
 		bignum counter;
-        bignum high;
-        bignum low;
+		bignum high;
+		bignum low;
 		bignum temp;
 		bignum zero;
 
@@ -1360,10 +1351,10 @@ namespace jep
 		high.setBase(b.getBase());
 		low.setBase(b.getBase());
 		zero.setBase(b.getBase());
-        
+
 		if (greaterThan(b, zero))
 		{
-			high ++;
+			high++;
 
 			while (lessThan(counter, b))
 			{
@@ -1391,107 +1382,110 @@ namespace jep
 			return high;
 		}
 
-        return temp;
-    }
-    
-    bignum fibonacci(int n)
-    {
-        bignum temp(n);
-        return fibonacci(temp);
-    }
-    
+		return temp;
+	}
+
+	bignum fibonacci(int n)
+	{
+		bignum temp(n);
+		return fibonacci(temp);
+	}
+
 	//returns random number within range with added resolution
-    bignum randomNumberAddPrecision(bignum bn1, bignum bn2, int add_precision)
-    {
-    	if (add_precision>PRECISION)
-    		throw bignum_Error( __FILE__ , __LINE__, "specified precision was too fine");
-    	
-    	if(bn1.getBase()!=bn2.getBase())
-    		throw bignum_Error( __FILE__ , __LINE__, "random numbers can only be generated between numbers of the same base");
-    		
-    	if (equals(bn1, bn2))
-    		return bn1;
-    	
-    	bignum temp;
-    	bignum difference;
-    	difference.setBase(bn1.getBase());
-    	temp.setBase(bn1.getBase());
-    	
-		difference = (greaterThan(bn1, bn2) ? bn1 - bn2 : bn2 - bn1);
-    	
-    	int start = difference.getDigitCount()-1;
-    	int tempdigit;
-    	
-    	int counter = (add_precision>0 ? difference.getDigitRange()+add_precision : difference.getDigitRange());
-    	
-    	for (int i=0; i<counter; i++)
-    	{
-    		int marker = (start-i);
-    		tempdigit = (rand() % difference.getBase());
-    		temp.setDigit(marker, tempdigit);
-    	}
-    	
-    	bignum increment;
-    	increment.setBase(difference.getBase());
-    	increment.setDigit((difference.getDigitCount()-counter), 1);
-    	
-    	difference += increment;
-    	
-    	while(!lessThan(temp, difference) && temp.getNegative()==false)
-    	{
-    		temp -= difference;
-    	}
-    	
-		return (greaterThan(bn1, bn2) ? bn2 + temp : bn1 + temp);
-    }
-    
-	//returns random number within range with a specified resolution
-    bignum randomNumberForcePrecision(bignum bn1, bignum bn2, int force_precision)
-    {
-    	if (force_precision>PRECISION)
-    		throw bignum_Error( __FILE__ , __LINE__, "specified precision was too fine");
-    	
-    	if(bn1.getBase()!=bn2.getBase())
-    		throw bignum_Error( __FILE__ , __LINE__, "random numbers can only be generated between numbers of the same base");
-    		
+	bignum randomNumberAddPrecision(const bignum &bn1, const bignum &bn2, int add_precision)
+	{
+		if (add_precision > PRECISION)
+			throw error_handler(__FILE__, __LINE__, "specified precision was too fine");
+
+		if (bn1.getBase() != bn2.getBase())
+			throw error_handler(__FILE__, __LINE__, "random numbers can only be generated between numbers of the same base");
+
 		if (equals(bn1, bn2))
-    		return bn1;
-    	
-    	bignum temp;
-    	bignum difference;
-    	difference.setBase(bn1.getBase());
-    	temp.setBase(bn1.getBase());
-    	
-    	bn1.adjustPrecision(force_precision);
-    	bn2.adjustPrecision(force_precision);
-    	
+			return bn1;
+
+		bignum temp;
+		bignum difference;
+		difference.setBase(bn1.getBase());
+		temp.setBase(bn1.getBase());
+
 		difference = (greaterThan(bn1, bn2) ? bn1 - bn2 : bn2 - bn1);
-    	
-    	int start = difference.getDigitCount()-1;
-    	int tempdigit;
-    	
-    	int counter = (difference.getDigitCount()-(PRECISION-force_precision));
-    	
-    	for (int i=0; i<counter; i++)
-    	{
-    		int marker = (start-i);
-    		tempdigit = (rand() % difference.getBase());
-    		temp.setDigit(marker, tempdigit);
-    	}
-    	
-    	bignum increment;
-    	increment.setBase(difference.getBase());
-    	increment.setDigit((difference.getDigitCount()-counter), 1);
-    	
-    	difference += increment;
-    	
-    	while(!lessThan(temp, difference))
-    	{
-    		temp -= difference;
-    	}
-    	
+
+		int start = difference.getDigitCount() - 1;
+		int tempdigit;
+
+		int counter = (add_precision > 0 ? difference.getDigitRange() + add_precision : difference.getDigitRange());
+
+		for (int i = 0; i < counter; i++)
+		{
+			int marker = (start - i);
+			tempdigit = (rand() % difference.getBase());
+			temp.setDigit(marker, tempdigit);
+		}
+
+		bignum increment;
+		increment.setBase(difference.getBase());
+		increment.setDigit((difference.getDigitCount() - counter), 1);
+
+		difference += increment;
+
+		while (!lessThan(temp, difference) && temp.getNegative() == false)
+		{
+			temp -= difference;
+		}
+
 		return (greaterThan(bn1, bn2) ? bn2 + temp : bn1 + temp);
-    }
+	}
+
+	//returns random number within range with a specified resolution
+	bignum randomNumberForcePrecision(const bignum &bn1, const bignum &bn2, int force_precision)
+	{
+		if (force_precision > PRECISION)
+			throw error_handler(__FILE__, __LINE__, "specified precision was too fine");
+
+		if (bn1.getBase() != bn2.getBase())
+			throw error_handler(__FILE__, __LINE__, "random numbers can only be generated between numbers of the same base");
+
+		if (equals(bn1, bn2))
+			return bn1;
+
+		bignum temp;
+		bignum difference;
+		difference.setBase(bn1.getBase());
+		temp.setBase(bn1.getBase());
+
+		bignum bn1_adjusted(bn1);
+		bn1_adjusted.adjustPrecision(force_precision);
+
+		bignum bn2_adjusted(bn1);
+		bn2_adjusted.adjustPrecision(force_precision);
+
+		difference = (greaterThan(bn1_adjusted, bn2_adjusted) ? bn1_adjusted - bn2_adjusted : bn2_adjusted - bn1_adjusted);
+
+		int start = difference.getDigitCount() - 1;
+		int tempdigit;
+
+		int counter = (difference.getDigitCount() - (PRECISION - force_precision));
+
+		for (int i = 0; i < counter; i++)
+		{
+			int marker = (start - i);
+			tempdigit = (rand() % difference.getBase());
+			temp.setDigit(marker, tempdigit);
+		}
+
+		bignum increment;
+		increment.setBase(difference.getBase());
+		increment.setDigit((difference.getDigitCount() - counter), 1);
+
+		difference += increment;
+
+		while (!lessThan(temp, difference))
+		{
+			temp -= difference;
+		}
+
+		return (greaterThan(bn1_adjusted, bn2_adjusted) ? bn2_adjusted + temp : bn1_adjusted + temp);
+	}
 
 	signed long int getInt(bignum bn)
 	{
@@ -1502,7 +1496,7 @@ namespace jep
 		bn.convertBase(10);
 
 		if (bn > max || bn < min)
-			throw bignum_Error(__FILE__, __LINE__, "the targeted bignum is too large to convert to an integer");
+			throw error_handler(__FILE__, __LINE__, "the targeted bignum is too large to convert to an integer");
 
 		for (int i = PRECISION; i < bn.getDigitCount(); i++)
 		{
@@ -1523,7 +1517,7 @@ namespace jep
 		bn.convertBase(10);
 
 		if (bn > max || bn < min)
-			throw bignum_Error(__FILE__, __LINE__, "the targeted bignum is too large to convert to a double");
+			throw error_handler(__FILE__, __LINE__, "the targeted bignum is too large to convert to a double");
 
 		for (int i = PRECISION; i < bn.getDigitCount(); i++)
 		{
@@ -1544,7 +1538,7 @@ namespace jep
 		bn.convertBase(10);
 
 		if (bn > max || bn < min)
-			throw bignum_Error(__FILE__, __LINE__, "the targeted bignum is too large to convert to a double");
+			throw error_handler(__FILE__, __LINE__, "the targeted bignum is too large to convert to a double");
 
 		for (int i = PRECISION; i < bn.getDigitCount(); i++)
 		{
@@ -1555,27 +1549,27 @@ namespace jep
 
 		return (bn.getNegative() == true ? temp * -1 : temp);
 	}
-    
-	//returns average of all values passed
-    bignum average(vector<bignum> numbers_passed)
-    {
-    	bignum counter((int)numbers_passed.size());
-    	bignum total;
-    	
-    	for (int i=0; i<numbers_passed.size(); i++)
-    	{
-    		total += numbers_passed.at(i);
-    	}
-    	
-		if (equals(total, bignum(0)) || equals(counter, bignum(0)))
-    	{
-    		return bignum(0);
-    	}
-    	
-    	return divideNumbers(total, counter);
-    }
 
-	string bignum_Error::getErrorReport()
+	//returns average of all values passed
+	bignum average(vector<bignum> numbers_passed)
+	{
+		bignum counter((int)numbers_passed.size());
+		bignum total;
+
+		for (int i = 0; i < numbers_passed.size(); i++)
+		{
+			total += numbers_passed.at(i);
+		}
+
+		if (equals(total, bignum(0)) || equals(counter, bignum(0)))
+		{
+			return bignum(0);
+		}
+
+		return divideNumbers(total, counter);
+	}
+
+	string error_handler::getErrorReport()
 	{
 		string temp;
 
@@ -1591,5 +1585,5 @@ namespace jep
 
 		return temp;
 	}
-    
+
 } //END OF NAMESPACE JEP
