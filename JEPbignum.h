@@ -26,6 +26,30 @@ using std::numeric_limits;
 
 namespace jep
 {
+	class bignum;
+
+	bool lessThan(const bignum &bn1, const bignum &bn2);
+	bool greaterThan(const bignum &bn1, const bignum &bn2);
+	bool equals(const bignum &bn1, const bignum &bn2);
+	bignum addNumbers(const bignum &bn1, const bignum &bn2);
+	bignum subtractNumbers(const bignum &bn1, const bignum &bn2);
+	bignum multiplyNumbersSimple(const bignum &bn1, int n);
+	bignum multiplyNumbers(const bignum &bn1, const bignum &bn2);
+	bignum divideNumbersSimple(const bignum &bn1, const bignum &bn2, bool &remainder);
+	bignum divideNumbers(const bignum &bn1, const bignum &bn2);
+	bignum factorial(const bignum &bn);
+	bignum combinations(const bignum &bn1, const bignum &bn2);
+	bignum exponent(const bignum &bn1, const bignum &bn2);
+	bignum fibonacci(const bignum &bn1);
+	bignum fibonacci(int n);
+	bignum golden(const bignum &bn1);
+	bignum golden(int n);
+	bignum randomNumberForcePrecision(const bignum &bn1, const bignum &bn2, int forceprecision);
+	bignum randomNumberAddPrecision(const bignum &bn1, const bignum &bn2, int addprecision);
+	bignum average(vector<bignum> numbers_passed);
+	signed long int getInt(bignum bn);
+	long double getDouble(bignum bn);
+	long float getFloat(bignum bn);
 
     class bignum
     {
@@ -34,9 +58,11 @@ namespace jep
     		bignum();
     		bignum(int n);
 			bignum(float f);
+			//bignum(long float f);
 			bignum(double d);
     		bignum(string s);
     		bignum(string s, int baseGiven);
+			explicit bignum(bignum bn, int baseGiven) { *this = bn.getConverted(baseGiven); }
     		~bignum() {};    
     
 			void setDigit(int n, int s) { digits[n] = s; updateDigits(); }
@@ -53,6 +79,7 @@ namespace jep
 			bool getNegative() const { return negative; }		
     		string getDigitString (int n) const;
     		string getNumberString(bool include_commas, bool percent, int decimal_places) const;
+			bool getZero() const { bignum zero; zero.setBase(base); return equals(*this, zero); }
     		
     		void updateDigits();
     		void convertBase(int n);
@@ -66,109 +93,28 @@ namespace jep
 			bignum noDecimal() const;
 			bignum withoutDecimals() const;
 
-			template <class T>
-			bool operator < (T passed)
-			{
-				bignum b(passed);
-				return lessThan(*this, b);
-			}
+			bignum operator + (bignum bn) const { return addNumbers(*this, bn); }
+			bignum operator - (bignum bn) const { return subtractNumbers(*this, bn); }
+			bignum operator * (bignum bn) const { return multiplyNumbers(*this, bn); }
+			bignum operator / (bignum bn) const { return divideNumbers(*this, bn); }
 
-			template <class T>
-			bool operator <= (T passed)
-			{
-				bignum b(passed);
-				return !greaterThan(*this, b);
-			}
-    
-			template <class T>
-			bool operator > (T passed)
-			{
-				bignum b(passed);
-				return greaterThan(*this, b);
-			}
+			void operator += (bignum bn) { *this = addNumbers(*this, bn); }
+			void operator -= (bignum bn) { *this = subtractNumbers(*this, bn); }
+			void operator *= (bignum bn) { *this = multiplyNumbers(*this, bn); }
+			void operator /= (bignum bn) { *this = divideNumbers(*this, bn); }
 
-			template <class T>
-			bool operator >= (T passed)
-			{
-				bignum b(passed);
-				return !lessThan(*this, b);
-			}
-    
-			template <class T>
-			bool operator == (T passed)
-			{
-				bignum b(passed);
-				return equals(*this, b);
-			}
+			bool operator < (bignum bn) { return lessThan(*this, bn); }
+			bool operator > (bignum bn) { return greaterThan(*this, bn); }
 
-			template <class T>
-			bool operator != (T passed)
-			{
-				bignum b(passed);
-				return !(equals(*this, b));
-			}
-			
-    		void operator -- (int n);
-    		void operator ++ (int n);
-    		void operator = (bignum b);
-    		void operator = (string s);
-    		void operator = (int n);
-    
-			template <class T>
-			bignum operator * (T passed) const
-			{
-				bignum b(passed);
-				return multiplyNumbers(*this, b);
-			}
+			bool operator <= (bignum bn) { return !greaterThan(*this, bn); }
+			bool operator >= (bignum bn) { return !lessThan(*this, bn); }
 
-			template <class T>
-			bignum operator / (T passed) const
-			{
-				bignum b(passed);
-				return divideNumbers(*this, b);
-			}
+			bool operator == (bignum bn) { return equals(*this, bn); }
+			bool operator != (bignum bn) { return !equals(*this, bn); }
 
-			template <class T>
-			bignum operator + (T passed) const
-			{
-				bignum b(passed);
-				return addNumbers(*this, b);
-			}
-
-			template <class T>
-			bignum operator - (T passed) const
-			{
-				bignum b(passed);
-				return subtractNumbers(*this, b);
-			}
-
-			template <class T>
-			void operator += (T passed)
-			{
-				bignum b(passed);
-				*this = *this + b;
-			}
-
-			template <class T>
-			void operator -= (T passed)
-			{
-				bignum b(passed);
-				*this = *this - b;
-			}
-
-			template <class T>
-			void operator *= (T passed)
-			{
-				bignum b(passed);
-				*this = *this * b;
-			}
-
-			template <class T>
-			void operator /= (T passed)
-			{
-				bignum b(passed);
-				*this = *this / b;
-			}
+			void operator -- (int n);
+			void operator ++ (int n);
+			void operator = (bignum b);
     
     	private:
     		int digits[MAXDIGITS];
@@ -178,29 +124,6 @@ namespace jep
     		bool negative;
     		int base;
     };
-    
-	bool lessThan(bignum bn1, bignum bn2);
-	bool greaterThan(bignum bn1, bignum bn2);
-	bool equals(bignum bn1, bignum bn2);
-	bignum addNumbers(const bignum &bn1, const bignum &bn2);
-	bignum subtractNumbers(const bignum &bn1, const bignum &bn2);
-    bignum multiplyNumbersSimple(const bignum &bn1, int n);
-	bignum multiplyNumbers(const bignum &bn1, const bignum &bn2);
-	bignum divideNumbersSimple(const bignum &bn1, const bignum &bn2, bool &remainder);
-	bignum divideNumbers(const bignum &bn1, const bignum &bn2);
-    bignum factorial(const bignum &bn);
-	bignum combinations(const bignum &bn1, const bignum &bn2);
-	bignum exponent(const bignum &bn1, const bignum &bn2);
-    bignum fibonacci(const bignum &bn1);
-    bignum fibonacci(int n);
-    bignum golden(const bignum &bn1);
-    bignum golden(int n);
-	bignum randomNumberForcePrecision(const bignum &bn1, const bignum &bn2, int forceprecision);
-	bignum randomNumberAddPrecision(const bignum &bn1, const bignum &bn2, int addprecision);
-    bignum average(vector<bignum> numbers_passed);
-	signed long int getInt(bignum bn);
-	long double getDouble(bignum bn);
-	long float getFloat(bignum bn);
 
     class error_handler
     {
