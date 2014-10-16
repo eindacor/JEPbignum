@@ -169,18 +169,15 @@ namespace jep
 	}
 	*/
 
-	bignum::bignum(vector<int> n, int offset, int set_base, bool is_negative)
+	bignum::bignum(vector<int> n, int set_base, bool is_negative)
 	{
 		base = set_base;
-		if (offset < 0)
-			throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
-
 		for (int i = 0; i < MAXDIGITS; i++)
 		{
 			digits[i] = 0;
 		}
 
-		int count = offset;
+		int count = (PRECISION - 1) + n.size();
 		for (vector<int>::iterator i = n.begin(); i != n.end(); i++)
 		{
 			if (count >= MAXDIGITS || count < 0)
@@ -190,7 +187,33 @@ namespace jep
 				throw error_handler(__FILE__, __LINE__, "One of the values passed is beyond the given base");
 
 			digits[count] = (*i);
-			count++;
+			count--;
+		}
+
+		updateDigits();
+		negative = is_negative;
+	}
+
+	bignum::bignum(vector<int> n, int offset, int set_base, bool is_negative)
+	{
+		base = set_base;
+		for (int i = 0; i < MAXDIGITS; i++)
+		{
+			digits[i] = 0;
+		}
+
+		int count = (PRECISION - 1) + n.size();
+		count += offset;
+		for (vector<int>::iterator i = n.begin(); i != n.end(); i++)
+		{
+			if (count >= MAXDIGITS || count < 0)
+				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+
+			if (*i >= base)
+				throw error_handler(__FILE__, __LINE__, "One of the values passed is beyond the given base");
+
+			digits[count] = (*i);
+			count--;
 		}
 
 		updateDigits();
@@ -979,8 +1002,11 @@ namespace jep
 	//BIGNUM OPERATORS
 	//----------------
 
-	void bignum::operator = (bignum b)
+	bignum& bignum::operator = (const bignum& b)
 	{
+		if (this == &b)
+			return *this;
+
 		base = b.getBase();
 
 		int highestDigits = 0;
@@ -1001,6 +1027,8 @@ namespace jep
 		negative = b.getNegative();
 
 		updateDigits();
+
+		return *this;
 	}
 
 	//-----------------
@@ -1037,6 +1065,9 @@ namespace jep
 			{
 				converted++;
 				counter--;
+
+				//cout << "line " << __LINE__ << ": " << converted.getNumberString(false, false, 0) << endl;
+				//cout << "line " << __LINE__ << ": " << counter.getNumberString(false, false, 0) << endl;
 			}
 
 			*this = converted;
@@ -1047,7 +1078,6 @@ namespace jep
 		updateDigits();
 	}
 
-	//FUNCTION FOR CONVERTING BASES
 	void bignum::convertBase(int n)
 	{
 		bool original_negative = negative;
@@ -1061,7 +1091,7 @@ namespace jep
 			for (int i = 0; i < digitRange ; i++)
 			{
 				//start marker at the left-most digit and continue through all digits
-				int marker(digitCount - i - 1);
+				int marker(left_most - i);
 
 				if (marker >= MAXDIGITS || marker < 0)
 					throw error_handler(__FILE__, __LINE__, "void bignum::convertBase(int n): The program has attempted to calculate a value outside of its limits");
@@ -1204,10 +1234,10 @@ namespace jep
 		{
 			for (int c = 0; c < digitRange; c++)
 			{
-				digits[digitCount - c] = digits[digitCount - 1 - c];
+				digits[digitCount - c] = digits[left_most - c];
 			}
 
-			digits[PRECISION - decimalCount] = 0;
+			digits[right_most] = 0;
 			updateDigits();
 		}
 		updateDigits();
@@ -1218,9 +1248,7 @@ namespace jep
 	{
 		for (int i = n; i > 0; i--)
 		{
-			int starting_point = (PRECISION - decimalCount);
-
-			for (int c = starting_point; c <= digitCount; c++)
+			for (int c = right_most; c <= digitCount; c++)
 			{
 				if (c == 0)
 					continue;
@@ -1243,12 +1271,14 @@ namespace jep
 			if (i == PRECISION)
 			{
 				digitCount = PRECISION + 1;
+				left_most = i;
 				break;
 			}
 
 			if (digits[i] > 0)
 			{
 				digitCount = (i + 1);
+				left_most = i;
 				break;
 			}
 		}
@@ -1258,19 +1288,25 @@ namespace jep
 			if (digits[i]>0)
 			{
 				decimalCount = PRECISION - i;
+				right_most = i;
 				break;
 			}
+
+			if (i == PRECISION - 1)
+				right_most = PRECISION;
 		}
 
 		if (decimalCount == 0 && digitCount == (PRECISION + 1))
 		{
 			if (digits[PRECISION] == 0)
 				setPositive();
+
+			right_most = PRECISION;
 		}
 
 		//sets number of operative digits
 		//	12.077 ---> digitRange = 5
-		digitRange = digitCount - (PRECISION - decimalCount);
+		digitRange = left_most - right_most + 1;
 	}
 
 	//returns absolute value of bignum

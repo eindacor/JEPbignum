@@ -20,9 +20,7 @@ using std::string;
 using std::numeric_limits;
 
 #define MAXDIGITS 1000
-#define PRECISION 30
-#define PI "3141592653589793238462643383279"
-#define THETA "1618033988749894848204586834365"
+#define PRECISION 100
 
 namespace jep
 {
@@ -55,6 +53,7 @@ namespace jep
     {
 		public:
     		bignum(vector<int> n, int offset, int set_base, bool is_negative);
+			bignum(vector<int> n, int set_base, bool is_negative);
     		bignum();
     		bignum(int n);
 			bignum(float f);
@@ -98,10 +97,10 @@ namespace jep
 			bignum operator * (bignum bn) const { return multiplyNumbers(*this, bn); }
 			bignum operator / (bignum bn) const { return divideNumbers(*this, bn); }
 
-			void operator += (bignum bn) { *this = addNumbers(*this, bn); }
-			void operator -= (bignum bn) { *this = subtractNumbers(*this, bn); }
-			void operator *= (bignum bn) { *this = multiplyNumbers(*this, bn); }
-			void operator /= (bignum bn) { *this = divideNumbers(*this, bn); }
+			bignum& operator += (const bignum& bn) { *this = addNumbers(*this, bn); return *this; }
+			bignum& operator -= (const bignum& bn) { *this = subtractNumbers(*this, bn); return *this; }
+			bignum& operator *= (const bignum& bn) { *this = multiplyNumbers(*this, bn); return *this; }
+			bignum& operator /= (const bignum& bn) { *this = divideNumbers(*this, bn); return *this; }
 
 			bool operator < (bignum bn) { return lessThan(*this, bn); }
 			bool operator > (bignum bn) { return greaterThan(*this, bn); }
@@ -114,7 +113,7 @@ namespace jep
 
 			void operator -- (int n);
 			void operator ++ (int n);
-			void operator = (bignum b);
+			bignum& operator = (const bignum& b);
     
     	private:
     		int digits[MAXDIGITS];
@@ -123,6 +122,9 @@ namespace jep
     		int digitRange;
     		bool negative;
     		int base;
+
+			int left_most;
+			int right_most;
     };
 
     class error_handler
