@@ -45,137 +45,114 @@ namespace jep
 		negative = original_negative;
 	}
 
-	bignum::bignum(double d)
+	bignum::bignum(double target)
 	{
-		bool original_negative = (d < 0);
+		vector<int> exponent;
+		vector<int> mantissa;
+		bool sign = false;
 
-		if (d < 0)
-			d *= -1;
+		static int double_bits = 64, mantissa_delim = 52, exponent_delim = 63, exponent_bias = 1023;
 
-		for (int i = 0; i < MAXDIGITS; i++)
-			digits[i] = 0;
-
-		decimalCount = 0;
-		base = 10;
-		updateDigits();
-		bool roundup = false;
-
-		cout << "double: " << d << endl;
-
-		for (int i = 0; i < 15; i++)
+		union float_converter
 		{
-			int retrieved_digit = (int)d % 10;
+			double d;
+			unsigned long long int u;
+		};
 
-			if (i == 0)
-				*this = (int)d;
+		float_converter converter;
+		converter.d = target;
 
-			else if (i == 14 && retrieved_digit >= 5)
-			{
-				retrieved_digit = 0;
-				roundup = true;
-				digits[PRECISION - i] = retrieved_digit;
-			}
+		unsigned long long int compare = 1;
 
-			cout << retrieved_digit;
+		//
+		for (int i = 0; i < double_bits; i++)
+		{
+			if (i < mantissa_delim)
+				mantissa.push_back(converter.u & compare == compare);
 
-			d *= 10.0f;
+			else if (i < exponent_delim)
+				exponent.push_back(converter.u & compare == compare);
+
+			else sign = (converter.u & compare == compare);
+
+			converter.u = converter.u >> 1;
 		}
 
-		cout << endl;
+		std::reverse(mantissa.begin(), mantissa.end());
+		std::reverse(exponent.begin(), exponent.end());
 
-		updateDigits();
+		bignum big_mantissa(mantissa, 2, false);
+		big_mantissa.divideByTen(mantissa_delim);
+		big_mantissa += 1;
 
-		if (roundup)
-			*this += bignum(".0000000000001");
+		bignum big_exponent = bignum(exponent, 2, false) - bignum(exponent_bias);
+
+		bignum temp = big_mantissa * jep::exponent(bignum(2), big_exponent);
+
+		if (sign)
+			temp.setNegative();
+
+		temp.convertBase(10);
+
+		*this = temp;
 	}
 
-	bignum::bignum(float f)
+	bignum::bignum(float target)
 	{
-		bool original_negative = (f < 0);
+		vector<int> exponent;
+		vector<int> mantissa;
+		bool sign = false;
 
-		if (f < 0)
-			f *= -1;
+		static int float_bits = 32, mantissa_delim = 23, exponent_delim = 31, exponent_bias = 127;
 
-		for (int i = 0; i < MAXDIGITS; i++)
+		union float_converter
 		{
-			digits[i] = 0;
+			float f;
+			unsigned int u;
+		};
+
+		float_converter converter;
+		converter.f = target;
+
+		unsigned int compare = 1;
+
+		for (int i = 0; i < float_bits; i++)
+		{
+			if (i < mantissa_delim)
+				mantissa.push_back(converter.u & compare == compare);
+
+			else if (i < exponent_delim)
+				exponent.push_back(converter.u & compare == compare);
+
+			else sign = (converter.u & compare == compare);
+
+			converter.u = converter.u >> 1;
 		}
 
-		decimalCount = 0;
-		base = 10;
-		updateDigits();
-		bool roundup = false;
+		std::reverse(mantissa.begin(), mantissa.end());
+		std::reverse(exponent.begin(), exponent.end());
 
-		for (int i = 0; i < 7; i++)
-		{
-			int retrieved_digit = (int)f % 10;
+		bignum big_mantissa(mantissa, 2, false);
+		big_mantissa.divideByTen(mantissa_delim);
+		big_mantissa += 1;
 
-			if (i == 0)
-			{
-				*this = (int)f;
-				continue;
-			}
-				
-			if (i == 6 && retrieved_digit >= 5)
-			{
-				retrieved_digit = 0;
-				roundup = true;
-			}
+		bignum big_exponent = bignum(exponent, 2, false) - bignum(exponent_bias);
+		
+		bignum temp = big_mantissa * jep::exponent(bignum(2), big_exponent);
 
-			digits[PRECISION - i] = retrieved_digit;
+		if (sign)
+			temp.setNegative();
 
-			f *= 10.0f;
-		}	
+		temp.convertBase(10);
 
-		updateDigits();
-
-		if (roundup)
-			*this += bignum(".00001");
+		*this = temp;
 	}
-
-	/*
-	bignum::bignum(double d)
-	{
-		bool original_negative = (d < 0);
-
-		if (d < 0)
-			d *= -1;
-
-		for (int i = 0; i < MAXDIGITS; i++)
-		{
-			digits[i] = 0;
-		}
-
-		decimalCount = 0;
-		base = 10;
-		updateDigits();
-
-		int i = (int)d;
-		int decimal_places = 0;
-
-		while (d != i)
-		{
-			d *= 10.0f;
-			i = d;
-			decimal_places++;
-		}
-
-		bignum bn_double((int)d);
-		bn_double.divideByTen(decimal_places);
-
-		(*this) = bn_double;
-		updateDigits();
-		negative = original_negative;
-	}
-	*/
 
 	bignum::bignum(vector<int> n, int set_base, bool is_negative)
 	{
 		base = set_base;
 		for (int i = 0; i < MAXDIGITS; i++)
-		{
 			digits[i] = 0;
-		}
 
 		int count = (PRECISION - 1) + n.size();
 		for (vector<int>::iterator i = n.begin(); i != n.end(); i++)
@@ -1056,7 +1033,8 @@ namespace jep
 		{
 			bool original_negative = negative;
 
-			bignum zero(bignum(), base);
+			bignum zero;
+			zero.setBase(base);
 			bignum counter(absolute());
 			bignum converted;
 			converted.setBase(n);
@@ -1153,14 +1131,14 @@ namespace jep
 
 		temp.updateDigits();
 
-		if (temp == 0)
+		bignum zero(0);
+		zero.setBase(base);
+		if (temp == zero)
 		{
 			tempString += "0";
 
 			for (int i = 0; i < decimal_places; i++)
-			{
 				tempString += (i == 0 ? ".0" : "0");
-			}
 
 			if (percent == true)
 				tempString += "%";
@@ -1310,7 +1288,7 @@ namespace jep
 	}
 
 	//returns absolute value of bignum
-	bignum bignum::absolute() const
+	const bignum bignum::absolute() const
 	{
 		bignum temp = *this;
 		temp.updateDigits();
@@ -1319,7 +1297,7 @@ namespace jep
 	}
 
 	//used in calculation for long division
-	bignum bignum::noDecimal() const
+	const bignum bignum::noDecimal() const
 	{
 		bignum temp(*this);
 		temp.timesTen(getDecimalCount());
@@ -1327,7 +1305,7 @@ namespace jep
 	}
 
 	//returns bignum with no decimal places
-	bignum bignum::withoutDecimals() const
+	const bignum bignum::withoutDecimals() const
 	{
 		bignum temp(*this);
 
