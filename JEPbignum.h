@@ -20,7 +20,7 @@ using std::string;
 using std::numeric_limits;
 
 #define MAXDIGITS 1000
-#define PRECISION 50
+#define PRECISION 100
 
 namespace jep
 {
@@ -46,8 +46,8 @@ namespace jep
 	bignum randomNumberAddPrecision(const bignum &bn1, const bignum &bn2, int addprecision);
 	bignum average(vector<bignum> numbers_passed);
 	signed long int getInt(bignum bn);
-	double getDouble(bignum bn);
-	float getFloat(bignum bn);
+	long double getDouble(bignum bn);
+	long float getFloat(bignum bn);
 
     class bignum
     {
@@ -57,6 +57,7 @@ namespace jep
     		bignum();
     		bignum(int n);
 			bignum(float f);
+			//bignum(long float f);
 			bignum(double d);
     		bignum(string s);
     		bignum(string s, int baseGiven);
@@ -87,31 +88,31 @@ namespace jep
 			void adjustPrecision(int n);
 			void decrement();
 
-			const bignum absolute() const;
-			const bignum noDecimal() const;
-			const bignum withoutDecimals() const;
+			bignum absolute() const;
+			bignum noDecimal() const;
+			bignum withoutDecimals() const;
 
-			const bignum operator + (bignum bn) const { return addNumbers(*this, bn); }
-			const bignum operator - (bignum bn) const { return subtractNumbers(*this, bn); }
-			const bignum operator * (bignum bn) const { return multiplyNumbers(*this, bn); }
-			const bignum operator / (bignum bn) const { return divideNumbers(*this, bn); }
+			bignum operator + (bignum bn) const { return addNumbers(*this, bn); }
+			bignum operator - (bignum bn) const { return subtractNumbers(*this, bn); }
+			bignum operator * (bignum bn) const { return multiplyNumbers(*this, bn); }
+			bignum operator / (bignum bn) const { return divideNumbers(*this, bn); }
 
 			bignum& operator += (const bignum& bn) { *this = addNumbers(*this, bn); return *this; }
 			bignum& operator -= (const bignum& bn) { *this = subtractNumbers(*this, bn); return *this; }
 			bignum& operator *= (const bignum& bn) { *this = multiplyNumbers(*this, bn); return *this; }
 			bignum& operator /= (const bignum& bn) { *this = divideNumbers(*this, bn); return *this; }
 
-			bool operator < (const bignum &bn) const { return lessThan(*this, bn); }
-			bool operator > (const bignum &bn) const { return greaterThan(*this, bn); }
+			bool operator < (bignum bn) { return lessThan(*this, bn); }
+			bool operator > (bignum bn) { return greaterThan(*this, bn); }
 
-			bool operator <= (const bignum &bn) const { return !greaterThan(*this, bn); }
-			bool operator >= (const bignum &bn) const { return !lessThan(*this, bn); }
+			bool operator <= (bignum bn) { return !greaterThan(*this, bn); }
+			bool operator >= (bignum bn) { return !lessThan(*this, bn); }
 
-			bool operator == (const bignum &bn) const { return equals(*this, bn); }
-			bool operator != (const bignum &bn) const { return !equals(*this, bn); }
+			bool operator == (bignum bn) { return equals(*this, bn); }
+			bool operator != (bignum bn) { return !equals(*this, bn); }
 
-			void operator -- (int);
-			void operator ++ (int);
+			void operator -- (int n);
+			void operator ++ (int n);
 			bignum& operator = (const bignum& b);
     
     	private:
