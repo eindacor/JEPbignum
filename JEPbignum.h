@@ -38,6 +38,16 @@ namespace jep
 	bignum factorial(const bignum &bn);
 	bignum combinations(const bignum &bn1, const bignum &bn2);
 	bignum exponent(const bignum &bn1, const bignum &bn2);
+	//bignum logarithm(const bignum &bn1, const bignum &bn2);
+	bignum modulo(const bignum &bn1, const bignum &bn2);
+	bool checkPrime(const bignum &bn);
+	bool divisibleByThree(const bignum &bn);
+	bool divisibleByFive(const bignum &bn);
+	bool divisibleBySeven(const bignum &bn);
+	void primeFactorization(const bignum &bn1, vector<bignum> &factors);
+	bignum greatestCommonFactor(const bignum &bn1, const bignum &bn2);
+	bignum lowestCommonMultiple(const bignum &bn1, const bignum &bn2);
+	bignum rootSimple(const bignum &bn1, const bignum &bn2);
 	bignum fibonacci(const bignum &bn1);
 	bignum fibonacci(int n);
 	bignum golden(const bignum &bn1);
@@ -60,7 +70,7 @@ namespace jep
 			bignum(double d);
     		bignum(string s);
     		bignum(string s, int baseGiven);
-			explicit bignum(bignum bn, int baseGiven) { *this = bn.getConverted(baseGiven); }
+			explicit bignum(const bignum &bn, int baseGiven) { *this = bn.getConverted(baseGiven); }
     		~bignum() {};    
     
 			void setDigit(int n, int s) { digits[n] = s; updateDigits(); }
@@ -91,10 +101,11 @@ namespace jep
 			const bignum noDecimal() const;
 			const bignum withoutDecimals() const;
 
-			const bignum operator + (bignum bn) const { return addNumbers(*this, bn); }
-			const bignum operator - (bignum bn) const { return subtractNumbers(*this, bn); }
-			const bignum operator * (bignum bn) const { return multiplyNumbers(*this, bn); }
-			const bignum operator / (bignum bn) const { return divideNumbers(*this, bn); }
+			const bignum operator + (const bignum &bn) const { return addNumbers(*this, bn); }
+			const bignum operator - (const bignum &bn) const { return subtractNumbers(*this, bn); }
+			const bignum operator * (const bignum &bn) const { return multiplyNumbers(*this, bn); }
+			const bignum operator / (const bignum &bn) const { return divideNumbers(*this, bn); }
+			const bignum operator % (const bignum &bn) const { return modulo(*this, bn); }
 
 			bignum& operator += (const bignum& bn) { *this = addNumbers(*this, bn); return *this; }
 			bignum& operator -= (const bignum& bn) { *this = subtractNumbers(*this, bn); return *this; }
