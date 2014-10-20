@@ -38,7 +38,10 @@ namespace jep
 	bignum factorial(const bignum &bn);
 	bignum combinations(const bignum &bn1, const bignum &bn2);
 	bignum exponent(const bignum &bn1, const bignum &bn2);
+
+	//TOADD
 	//bignum logarithm(const bignum &bn1, const bignum &bn2);
+
 	bignum modulo(const bignum &bn1, const bignum &bn2);
 	bool checkPrime(const bignum &bn);
 	bool divisibleByThree(const bignum &bn);

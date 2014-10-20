@@ -142,11 +142,13 @@ namespace jep
 
 		bignum big_mantissa(mantissa, 2, false);
 		big_mantissa.divideByTen(mantissa_delim);
-		big_mantissa += 1;
 
 		bignum big_exponent = bignum(exponent, 2, false) - bignum(exponent_bias);
+		bignum mantissa_multiplier = jep::exponent(bignum(2), big_exponent);
+		mantissa_multiplier.convertBase(2);
+		big_mantissa += 1;
 
-		bignum temp = big_mantissa * jep::exponent(bignum(2), big_exponent);
+		bignum temp = big_mantissa * mantissa_multiplier;
 
 		if (sign)
 			temp.setNegative();
@@ -863,7 +865,11 @@ namespace jep
 				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
 			if (marker >= 0)
-				number_to_compare += bn1.getDigit(marker);
+			{
+				bignum digit(bn1.getDigit(marker));
+				digit.convertBaseSimple(number_to_compare.getBase());
+				number_to_compare += digit;
+			}
 
 			nextNumber = divideNumbersSimple(number_to_compare, bn2.absolute().noDecimal(), remainder);
 
@@ -1012,6 +1018,23 @@ namespace jep
 
 	void primeFactorization(const bignum &bn, vector<bignum> &factors)
 	{
+		if (bn.getDecimalCount() > 0)
+			throw error_handler(__FILE__, __LINE__, "Cannot find the prime factorization of a decimal");
+
+		//converts to base 10 first for faster prime checks, then converts base of all prime factors in the list
+		if (bn.getBase() != 10)
+		{
+			bignum converted(bn);
+			converted.convertBase(10);
+			
+			primeFactorization(converted, factors);
+
+			for (vector<bignum>::iterator i = factors.begin(); i != factors.end(); i++)
+				i->convertBase(bn.getBase());
+
+			return;
+		}
+
 		if (bn < 0)
 		{
 			factors.push_back(-1);
@@ -1024,9 +1047,6 @@ namespace jep
 
 			else return primeFactorization(bn.absolute(), factors);
 		}
-
-		if (bn.getDecimalCount() > 0)
-			throw error_handler(__FILE__, __LINE__, "Cannot find the prime factorization of a decimal");
 
 		if (checkPrime(bn))
 		{
@@ -1137,7 +1157,7 @@ namespace jep
 		}
 
 		//if the power is negative, return 1/solution
-		if (bn2.getNegative() == true)
+		if (bn2.getNegative())
 			temp = divideNumbers(one, temp);
 
 		return temp;
@@ -1231,27 +1251,29 @@ namespace jep
 		{
 			for (int i = 0; i < digitRange; i++)
 			{
-				//start marker at the left-most digit and continue through all digits
 				int marker(left_most - i);
 
 				if (marker >= MAXDIGITS || marker < 0)
 					throw error_handler(__FILE__, __LINE__, "void bignum::convertBase(int n): The program has attempted to calculate a value outside of its limits");
 
-				//convert individual digit to a different base
-				bignum converted_digit(getDigit(marker));
+				//each digit of the number is evaluated evaluated X * 10^n format
+				bignum original_digit(getDigit(marker));
+				original_digit.convertBaseSimple(base);
+				bignum original_ten(10);
+				original_ten.setBase(base);
+				bignum original_nth(marker - PRECISION);
+				original_nth.convertBaseSimple(base);
+
+				//each of the above format is converted simply
+				bignum converted_digit(original_digit);
 				converted_digit.convertBaseSimple(n);
+				bignum converted_ten(original_ten);
+				converted_ten.convertBaseSimple(n);
+				bignum converted_nth(original_nth);
+				converted_nth.convertBaseSimple(n);
 
-				//create a multiplier based on the position of the digit (Nth power)
-				bignum ten(10);
-				ten.setBase(base);
-				ten.convertBaseSimple(n);
-				bignum nth(marker - PRECISION);
-				nth.convertBaseSimple(n);
-
-				bignum multiplier = exponent(ten, nth);
-
-				//add value to the temporary return value
-				toAdd = multiplyNumbers(converted_digit, multiplier);
+				//add X * 10^n to the solution
+				bignum toAdd = converted_digit * exponent(converted_ten, converted_nth);
 
 				temp += toAdd;
 			}
