@@ -19,8 +19,8 @@ using std::list;
 using std::string;
 using std::numeric_limits;
 
-#define MAXDIGITS 1000
-#define PRECISION 50
+#define MAXDIGITS 1024
+#define PRECISION 100
 
 namespace jep
 {
