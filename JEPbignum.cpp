@@ -1026,7 +1026,7 @@ namespace jep
 		{
 			bignum converted(bn);
 			converted.convertBase(10);
-			
+
 			primeFactorization(converted, factors);
 
 			for (vector<bignum>::iterator i = factors.begin(); i != factors.end(); i++)
@@ -1041,7 +1041,7 @@ namespace jep
 
 			if (checkPrime(bn.absolute()))
 			{
-				factors.push_back(bn.absolute());			
+				factors.push_back(bn.absolute());
 				return;
 			}
 
