@@ -1772,6 +1772,6 @@ namespace jep
 		temp += message;
 
 		return temp;
-	}
+	} 
 
 } //END OF NAMESPACE JEP
