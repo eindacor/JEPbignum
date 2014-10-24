@@ -1122,14 +1122,31 @@ namespace jep
 
 		throw error_handler(__FILE__, __LINE__, "An error has occurred");
 	}
-
+	
+	/*
 	bignum rootSimple(const bignum &bn1, const bignum &bn2)
 	{
+		if (bn2.getNegative())
+		{
+			if (bn1 % 2 == 0)
+				throw error_handler(__FILE__, __LINE__, "The program attempted to compute an irrational value");
+
+			else return rootSimple(bn1, bn2.absolute()) * -1;
+		}
+			
+
+		if (bn1.getBase() != bn2.getBase())
+			return rootSimple(bn1, bn2.getConverted(bn1.getBase()));
+
+		bignum resolution(1);
+		resolution.convertBaseSimple(bn2.getBase());
+
 
 
 		if (bn2.absolute() < 1);
 		return bignum();
 	}
+	*/
 
 	bignum exponent(const bignum &bn1, const bignum &bn2)
 	{
@@ -1141,7 +1158,12 @@ namespace jep
 		one.setPositive();
 
 		if (bn2.getDecimalCount() > 0)
+		{
+
+
 			throw error_handler(__FILE__, __LINE__, "Cannot use decimals as exponential powers");
+		}
+			
 
 		bignum counter = bn2.absolute();
 		bignum temp(bn1);
