@@ -50,7 +50,7 @@ namespace jep
 	void primeFactorization(const bignum &bn1, vector<bignum> &factors);
 	bignum greatestCommonFactor(const bignum &bn1, const bignum &bn2);
 	bignum lowestCommonMultiple(const bignum &bn1, const bignum &bn2);
-	bignum rootSimple(const bignum &bn1, const bignum &bn2);
+	bignum root(const bignum &bn1, const bignum &bn2, int decimal_places);
 	bignum fibonacci(const bignum &bn1);
 	bignum fibonacci(int n);
 	bignum golden(const bignum &bn1);

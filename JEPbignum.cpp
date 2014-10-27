@@ -1123,30 +1123,64 @@ namespace jep
 		throw error_handler(__FILE__, __LINE__, "An error has occurred");
 	}
 	
-	/*
-	bignum rootSimple(const bignum &bn1, const bignum &bn2)
+	bignum root(const bignum &bn1, const bignum &bn2, int decimal_places)
 	{
 		if (bn2.getNegative())
 		{
 			if (bn1 % 2 == 0)
 				throw error_handler(__FILE__, __LINE__, "The program attempted to compute an irrational value");
 
-			else return rootSimple(bn1, bn2.absolute()) * -1;
-		}
-			
+			else return root(bn1, bn2.absolute(), decimal_places) * -1;
+		}	
 
 		if (bn1.getBase() != bn2.getBase())
-			return rootSimple(bn1, bn2.getConverted(bn1.getBase()));
+			return root(bn1, bn2.getConverted(bn1.getBase()), decimal_places);
 
-		bignum resolution(1);
-		resolution.convertBaseSimple(bn2.getBase());
+		bignum precision_check(1);
+		precision_check.setBase(bn1.getBase());
+		precision_check.divideByTen(decimal_places);
+		bignum range_low = bn2 - precision_check;
+		bignum range_high = bn2 + precision_check;
 
+		bignum root_test(bn2/bn1);
+		bignum increment(1);
+		increment.setBase(bn1.getBase());
+		bignum answer_check;
+		answer_check.setBase(bn1.getBase());
 
+		bool approximate = false;
 
-		if (bn2.absolute() < 1);
-		return bignum();
+		for (;;)
+		{
+			if (!approximate)
+				root_test.adjustPrecision(0);
+
+			 answer_check = exponent(root_test, bn1);
+
+			if (answer_check > range_low && answer_check < range_high)
+				return root_test;
+
+			if (answer_check > bn2)
+			{
+				if (approximate)
+				{
+					root_test -= increment;
+					increment.divideByTen(1);
+					root_test += increment;
+				}
+
+				else root_test /= bn1;
+			}
+				
+			else if (answer_check < bn2)
+			{
+				if (!approximate)
+					approximate = true;
+
+				root_test += increment;
+			}
+		}
 	}
-	*/
 
 	bignum exponent(const bignum &bn1, const bignum &bn2)
 	{
@@ -1158,12 +1192,7 @@ namespace jep
 		one.setPositive();
 
 		if (bn2.getDecimalCount() > 0)
-		{
-
-
-			throw error_handler(__FILE__, __LINE__, "Cannot use decimals as exponential powers");
-		}
-			
+			throw error_handler(__FILE__, __LINE__, "Cannot use decimals as exponential powers");		
 
 		bignum counter = bn2.absolute();
 		bignum temp(bn1);
