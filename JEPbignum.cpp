@@ -1124,7 +1124,10 @@ namespace jep
 	}
 	
 	bignum root(const bignum &bn1, const bignum &bn2, int decimal_places)
-	{
+	{	
+		if (bn1.getBase() != bn2.getBase())
+			return root(bn1, bn2.getConverted(bn1.getBase()), decimal_places);
+
 		if (bn2.getNegative())
 		{
 			if (bn1 % 2 == 0)
@@ -1133,27 +1136,37 @@ namespace jep
 			else return root(bn1, bn2.absolute(), decimal_places) * -1;
 		}	
 
-		if (bn1.getBase() != bn2.getBase())
-			return root(bn1, bn2.getConverted(bn1.getBase()), decimal_places);
+		if (bn2.getZero() || bn2 == 1)
+			return bn2;
 
+		//cross-checks the root being tested to the precision threshold specified
 		bignum precision_check(1);
 		precision_check.setBase(bn1.getBase());
 		precision_check.divideByTen(decimal_places);
 		bignum range_low = bn2 - precision_check;
 		bignum range_high = bn2 + precision_check;
 
-		bignum root_test(bn2/bn1);
+		bignum root_test;
+		root_test = bn2 < 1 ? bn2*bn1 : bn2 / bn1;
+
+		//TODO: refine increment function to scale depending on the size of the number being tested
 		bignum increment(1);
 		increment.setBase(bn1.getBase());
+		if (bn2 < 1)
+			increment.divideByTen(1);
+
 		bignum answer_check;
 		answer_check.setBase(bn1.getBase());
 
+		//sets once function finds general region of the answer
 		bool approximate = false;
 
 		for (;;)
 		{
+			//adjusts number precision to check for nearest round roots
+			//prevents function from returning 3.99999 instead of 4
 			if (!approximate)
-				root_test.adjustPrecision(0);
+				root_test.adjustPrecision(increment.getDecimalCount());
 
 			 answer_check = exponent(root_test, bn1);
 
