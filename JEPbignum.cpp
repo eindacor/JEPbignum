@@ -33,9 +33,9 @@ namespace jep
 			int reduced = (n % modifier);
 
 			if (i == 0)
-				digits[i + PRECISION] = reduced;
+				digits[i + ONES_PLACE] = reduced;
 
-			else digits[i + PRECISION] = reduced / (pow((double)10, i));
+			else digits[i + ONES_PLACE] = reduced / (pow((double)10, i));
 		}
 
 		decimalCount = 0;
@@ -44,7 +44,12 @@ namespace jep
 		negative = original_negative;
 	}
 
-	bignum::bignum(double target)
+	bignum::bignum(double d)
+	{
+		*this = bignum(d, ONES_PLACE - DEFAULT_FLOAT_PRECISION);
+	}
+
+	bignum::bignum(double d, int decimal_places)
 	{
 		for (int i = 0; i < MAXDIGITS; i++)
 			digits[i] = 0;
@@ -64,7 +69,7 @@ namespace jep
 		};
 
 		double_converter converter;
-		converter.d = target;
+		converter.d = d;
 
 		unsigned long long int compare = 1;
 
@@ -85,7 +90,7 @@ namespace jep
 		std::reverse(exponent.begin(), exponent.end());
 
 		bignum big_mantissa(mantissa, 2, false);
-		big_mantissa.divideByTen(mantissa_delim);
+		big_mantissa.rightShift(mantissa_delim);
 		big_mantissa += 1;
 
 		bignum big_exponent = bignum(exponent, 2, false) - bignum(exponent_bias);
@@ -98,9 +103,16 @@ namespace jep
 		temp.convertBase(10);
 
 		*this = temp;
+
+		roundToIndex(ONES_PLACE - decimal_places);
 	}
 
-	bignum::bignum(float target)
+	bignum::bignum(float f)
+	{
+		*this = bignum(f, DEFAULT_FLOAT_PRECISION);
+	}
+
+	bignum::bignum(float f, int decimal_places)
 	{
 		for (int i = 0; i < MAXDIGITS; i++)
 			digits[i] = 0;
@@ -120,7 +132,7 @@ namespace jep
 		};
 
 		float_converter converter;
-		converter.f = target;
+		converter.f = f;
 
 		unsigned int compare = 1;
 
@@ -141,7 +153,7 @@ namespace jep
 		std::reverse(exponent.begin(), exponent.end());
 
 		bignum big_mantissa(mantissa, 2, false);
-		big_mantissa.divideByTen(mantissa_delim);
+		big_mantissa.rightShift(mantissa_delim);
 
 		bignum big_exponent = bignum(exponent, 2, false) - bignum(exponent_bias);
 		bignum mantissa_multiplier = jep::exponent(bignum(2), big_exponent);
@@ -156,6 +168,8 @@ namespace jep
 		temp.convertBase(10);
 
 		*this = temp;
+
+		roundToIndex(ONES_PLACE - decimal_places);
 	}
 
 	bignum::bignum(vector<int> n, int set_base, bool is_negative)
@@ -164,7 +178,7 @@ namespace jep
 		for (int i = 0; i < MAXDIGITS; i++)
 			digits[i] = 0;
 
-		int count = (PRECISION - 1) + n.size();
+		int count = (ONES_PLACE - 1) + n.size();
 		for (vector<int>::iterator i = n.begin(); i != n.end(); i++)
 		{
 			if (count >= MAXDIGITS || count < 0)
@@ -187,7 +201,7 @@ namespace jep
 		for (int i = 0; i < MAXDIGITS; i++)
 			digits[i] = 0;
 
-		int count = (PRECISION - 1) + n.size();
+		int count = (ONES_PLACE - 1) + n.size();
 		count += offset;
 		for (vector<int>::iterator i = n.begin(); i != n.end(); i++)
 		{
@@ -266,10 +280,8 @@ namespace jep
 				if (negative == true)
 					throw error_handler(__FILE__, __LINE__, "constructor failed, number contains multiple negative symbols");
 
-				else
-				{
-					negative = true;
-				}
+				else negative = true;
+
 				break;
 
 			default:
@@ -292,18 +304,15 @@ namespace jep
 					break;
 				}
 
-				else
-				{
-					throw error_handler(__FILE__, __LINE__, "constructor failed, invalid character(s) included");
-				}
+				else throw error_handler(__FILE__, __LINE__, "constructor failed, invalid character(s) included");
 				break;
 			}
 		}
 
-		if (decimalNumbers > PRECISION)
+		if (decimalNumbers > ONES_PLACE)
 			throw error_handler(__FILE__, __LINE__, "constructor failed, number has too many decimal places");
 
-		int startingPoint = PRECISION + (numbersAdded - decimalNumbers) - 1;
+		int startingPoint = ONES_PLACE + (numbersAdded - decimalNumbers) - 1;
 		for (int i = 0; i < numbersToAdd.size(); i++)
 		{
 			int digitToAdd = numbersToAdd.at(i);
@@ -385,10 +394,10 @@ namespace jep
 			}
 		}
 
-		if (decimalNumbers > PRECISION)
+		if (decimalNumbers > ONES_PLACE)
 			throw error_handler(__FILE__, __LINE__, "constructor failed, number has too many decimal places");
 
-		int startingPoint = PRECISION + (numbersAdded - decimalNumbers) - 1;
+		int startingPoint = ONES_PLACE + (numbersAdded - decimalNumbers) - 1;
 		for (int i = 0; i < numbersToAdd.size(); i++)
 		{
 			int digitToAdd = numbersToAdd.at(i);
@@ -408,7 +417,7 @@ namespace jep
 		if (bn1.getBase() != bn2.getBase())
 			return equals(bn1, bn2.getConverted(bn1.getBase()));
 
-		if (bn1.getNegative() != bn2.getNegative())
+		if (bn1.isNegative() != bn2.isNegative())
 			return false;
 
 		if (bn1.getDigitCount() != bn2.getDigitCount())
@@ -434,13 +443,13 @@ namespace jep
 		if (bn1 == bn2)
 			return false;
 
-		if (bn1.getNegative() == true && bn2.getNegative() == false)
+		if (bn1.isNegative() == true && bn2.isNegative() == false)
 			return true;
 
-		if (bn1.getNegative() == false && bn2.getNegative() == true)
+		if (bn1.isNegative() == false && bn2.isNegative() == true)
 			return false;
 
-		if (bn1.getNegative() == true && bn2.getNegative() == true)
+		if (bn1.isNegative() == true && bn2.isNegative() == true)
 			return (greaterThan(bn1.absolute(), bn2.absolute()));
 
 		if (bn1.getDigitCount() < bn2.getDigitCount())
@@ -470,13 +479,13 @@ namespace jep
 		if (bn1 == bn2)
 			return false;
 
-		if (bn1.getNegative() == true && bn2.getNegative() == false)
+		if (bn1.isNegative() == true && bn2.isNegative() == false)
 			return false;
 
-		if (bn1.getNegative() == false && bn2.getNegative() == true)
+		if (bn1.isNegative() == false && bn2.isNegative() == true)
 			return true;
 
-		if (bn1.getNegative() == true && bn2.getNegative() == true)
+		if (bn1.isNegative() == true && bn2.isNegative() == true)
 			return (lessThan(bn1.absolute(), bn2.absolute()));
 
 		if (bn1.getDigitCount() > bn2.getDigitCount())
@@ -505,7 +514,7 @@ namespace jep
 		if (bn1.absolute() == bn2.absolute())
 		{
 			//	-12 + 12 or 12 + -12 ---> 0
-			if (bn1.getNegative() != bn2.getNegative())
+			if (bn1.isNegative() != bn2.isNegative())
 			{
 				bignum temp;
 				temp.setBase(bn1.getBase());
@@ -513,7 +522,7 @@ namespace jep
 			}
 
 			// -12 + -12 ---> -(12 + 12)
-			if (bn1.getNegative() == true && bn2.getNegative() == true)
+			if (bn1.isNegative() == true && bn2.isNegative() == true)
 			{
 				bignum temp(addNumbers(bn1.absolute(), bn2.absolute()));
 				temp.setNegative();
@@ -525,7 +534,7 @@ namespace jep
 		if (bn1.absolute() > bn2.absolute())
 		{
 			//	-12 + 8 ---> -(12 - 8)
-			if (bn1.getNegative() == true && bn2.getNegative() == false)
+			if (bn1.isNegative() == true && bn2.isNegative() == false)
 			{
 				bignum temp = subtractNumbers(bn1.absolute(), bn2.absolute());
 				temp.setNegative();
@@ -534,11 +543,11 @@ namespace jep
 			}
 
 			//	12 + -8 ---> 12 - 8
-			if (bn1.getNegative() == false && bn2.getNegative() == true)
+			if (bn1.isNegative() == false && bn2.isNegative() == true)
 				return subtractNumbers(bn1.absolute(), bn2.absolute());
 
 			//	-12 + -8 ---> -(12 + 8)
-			if (bn1.getNegative() == true && bn2.getNegative() == true)
+			if (bn1.isNegative() == true && bn2.isNegative() == true)
 			{
 				bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
 				temp.setNegative();
@@ -550,7 +559,7 @@ namespace jep
 		if (bn1.absolute() < bn2.absolute())
 		{
 			//	-8 + 12 ---> 12 - 8
-			if (bn1.getNegative() == true && bn2.getNegative() == false)
+			if (bn1.isNegative() == true && bn2.isNegative() == false)
 			{
 				bignum temp = subtractNumbers(bn2.absolute(), bn1.absolute());
 				temp.updateDigits();
@@ -558,11 +567,11 @@ namespace jep
 			}
 
 			//	8 + -12 ---> 8 - 12
-			if (bn1.getNegative() == false && bn2.getNegative() == true)
+			if (bn1.isNegative() == false && bn2.isNegative() == true)
 				return subtractNumbers(bn1.absolute(), bn2.absolute());
 
 			// -8 + -12 ---> -(8 + 12)
-			if (bn1.getNegative() == true && bn2.getNegative() == true)
+			if (bn1.isNegative() == true && bn2.isNegative() == true)
 			{
 				bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
 				temp.setNegative();
@@ -582,7 +591,7 @@ namespace jep
 		bignum sum;
 		int base = bn1.getBase();
 
-		for (int i = (PRECISION - decimal); i < digits + 1; i++)
+		for (int i = (ONES_PLACE - decimal); i < digits + 1; i++)
 		{
 			//verify function isn't checking beyond bounds of the stored array
 			if (i >= MAXDIGITS || i < 0)
@@ -621,7 +630,7 @@ namespace jep
 		if (bn1.absolute() == bn2.absolute())
 		{
 			//	-12 - 12 ---> -(12 + 12)
-			if (bn1.getNegative() == true && bn2.getNegative() == false)
+			if (bn1.isNegative() == true && bn2.isNegative() == false)
 			{
 				bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
 				temp.setNegative();
@@ -630,11 +639,11 @@ namespace jep
 			}
 
 			//	12 - -12 ---> 12 + 12
-			if (bn1.getNegative() == false && bn2.getNegative() == true)
+			if (bn1.isNegative() == false && bn2.isNegative() == true)
 				return addNumbers(bn1.absolute(), bn2.absolute());
 
 			//	-12 - -12 ---> 0
-			if (bn1.getNegative() == true && bn2.getNegative() == true)
+			if (bn1.isNegative() == true && bn2.isNegative() == true)
 			{
 				bignum temp(0);
 				return temp;
@@ -645,7 +654,7 @@ namespace jep
 		if (bn1.absolute() > bn2.absolute())
 		{
 			//	-12 - 8 ---> -(12 + 8)
-			if (bn1.getNegative() == true && bn2.getNegative() == false)
+			if (bn1.isNegative() == true && bn2.isNegative() == false)
 			{
 				bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
 				temp.setNegative();
@@ -654,11 +663,11 @@ namespace jep
 			}
 
 			//	12 - -8 ---> 12 + 8
-			if (bn1.getNegative() == false && bn2.getNegative() == true)
+			if (bn1.isNegative() == false && bn2.isNegative() == true)
 				return addNumbers(bn1.absolute(), bn2.absolute());
 
 			//	-12 - -8 ---> -(12 - 8)
-			if (bn1.getNegative() == true && bn2.getNegative() == true)
+			if (bn1.isNegative() == true && bn2.isNegative() == true)
 			{
 				bignum temp = subtractNumbers(bn1.absolute(), bn2.absolute());
 				temp.setNegative();
@@ -671,7 +680,7 @@ namespace jep
 		if (bn1.absolute() < bn2.absolute())
 		{
 			//	8 - 12 ---> -(12 - 8)
-			if (bn1.getNegative() == false && bn2.getNegative() == false)
+			if (bn1.isNegative() == false && bn2.isNegative() == false)
 			{
 				bignum temp = subtractNumbers(bn2.absolute(), bn1.absolute());
 				temp.setNegative();
@@ -680,7 +689,7 @@ namespace jep
 			}
 
 			//	-8 - 12 ---> -(8 + 12)
-			if (bn1.getNegative() == true && bn2.getNegative() == false)
+			if (bn1.isNegative() == true && bn2.isNegative() == false)
 			{
 				bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
 				temp.setNegative();
@@ -689,11 +698,11 @@ namespace jep
 			}
 
 			//	8 - -12 ---> 8 + 12
-			if (bn1.getNegative() == false && bn2.getNegative() == true)
+			if (bn1.isNegative() == false && bn2.isNegative() == true)
 				return addNumbers(bn1.absolute(), bn2.absolute());
 
 			//	-8 - -12 ---> (12 - 8)
-			if (bn1.getNegative() == true && bn2.getNegative() == true)
+			if (bn1.isNegative() == true && bn2.isNegative() == true)
 				return subtractNumbers(bn2.absolute(), bn1.absolute());
 		}
 
@@ -706,7 +715,7 @@ namespace jep
 		decimal = (bn1.getDecimalCount() > bn2.getDecimalCount() ? bn1.getDecimalCount() : bn2.getDecimalCount());
 		digits = (bn1.getDigitCount() > bn2.getDigitCount() ? bn1.getDigitCount() + 1 : bn2.getDigitCount() + 1);
 
-		for (int i = (PRECISION - decimal); i < digits + 1; i++)
+		for (int i = (ONES_PLACE - decimal); i < digits + 1; i++)
 		{
 			//verify function isn't checking beyond bounds of the stored array
 			if (i >= MAXDIGITS || i < 0)
@@ -744,7 +753,7 @@ namespace jep
 		bignum temp(bn1);
 
 		//if both numbers are negative, make the result positive
-		if (bn1.getNegative() == n < 0)
+		if (bn1.isNegative() == n < 0)
 			temp.setPositive();
 
 		//add the first number to itself n times
@@ -763,14 +772,14 @@ namespace jep
 		bignum temp(0);
 		temp.setBase(bn1.getBase());
 
-		if (bn1.getZero() || bn2.getZero())
+		if (bn1.isZero() || bn2.isZero())
 			return temp;
 
 		//multiply bn1 by each digit of bn2 independently, then add the values together
 		int counter = bn2.getDigitRange();
 		for (int i = 0; i < counter; i++)
 		{
-			int toMultiply = (PRECISION - bn2.getDecimalCount()) + i;
+			int toMultiply = (ONES_PLACE - bn2.getDecimalCount()) + i;
 
 			//verify function isn't checking beyond bounds of the stored array
 			if (toMultiply >= MAXDIGITS || toMultiply < 0)
@@ -782,15 +791,15 @@ namespace jep
 			if (toAdd.getDigitCount() == MAXDIGITS && i > 0)
 				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
-			toAdd.timesTen(i);
+			toAdd.leftShift(i);
 			temp += toAdd;
 		}
 
-		if (bn1.getNegative() != bn2.getNegative())
+		if (bn1.isNegative() != bn2.isNegative())
 			temp.setNegative();
 
 		//adjust for added decimal places during multiplication
-		temp.divideByTen(bn2.getDecimalCount());
+		temp.rightShift(bn2.getDecimalCount());
 
 		temp.updateDigits();
 		return temp;
@@ -819,11 +828,11 @@ namespace jep
 
 	bignum divideNumbers(const bignum &bn1, const bignum &bn2)
 	{
-		if (bn2.getZero())
+		if (bn2.isZero())
 			throw error_handler(__FILE__, __LINE__, "Cannot divide a number by zero");
 
 		bignum temp;
-		bool negative_result = (bn1.getNegative() != bn2.getNegative());
+		bool negative_result = (bn1.isNegative() != bn2.isNegative());
 
 		if (bn1.getBase() != bn2.getBase())
 			return divideNumbers(bn1, bn2.getConverted(bn1.getBase()));
@@ -834,10 +843,10 @@ namespace jep
 
 		bool remainder = false;
 		bool end = false;
-		int marker = bn1.getDigitCount() - 1;
+		int index = bn1.getDigitCount() - 1;
 
 		//starting with the left-most digit, create a bignumber of that digit that matches the set base
-		bignum number_to_compare(bn1.getDigit(marker));
+		bignum number_to_compare(bn1.getDigit(index));
 		number_to_compare.setBase(baseSet);
 
 		//ignore decimal places when comparing dividend to digits of the divisor
@@ -847,51 +856,51 @@ namespace jep
 
 		while (end != true)
 		{
-			if (remainder == false && marker < PRECISION - bn1.getDecimalCount())
+			if (remainder == false && index < ONES_PLACE - bn1.getDecimalCount())
 				end = true;
 
-			if (marker >= MAXDIGITS || marker < 0)
+			if (index >= MAXDIGITS || index < 0)
 				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
-			temp.setDigit(marker, nextNumber.getDigit(PRECISION));
-			marker--;
+			temp.setDigit(index, nextNumber.getDigit(ONES_PLACE));
+			index--;
 
 			number_to_subtract = bn2.absolute().noDecimal() * nextNumber;
 			number_to_subtract.updateDigits();
 			number_to_compare -= number_to_subtract;
-			number_to_compare.timesTen(1);
+			number_to_compare.leftShift(1);
 
-			if (marker >= MAXDIGITS)
+			if (index >= MAXDIGITS)
 				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
-			if (marker >= 0)
+			if (index >= 0)
 			{
-				bignum digit(bn1.getDigit(marker));
+				bignum digit(bn1.getDigit(index));
 				digit.convertBaseSimple(number_to_compare.getBase());
 				number_to_compare += digit;
 			}
 
 			nextNumber = divideNumbersSimple(number_to_compare, bn2.absolute().noDecimal(), remainder);
 
-			if (marker < 0)
+			if (index < 0)
 				end = true;
 		}
 
 		if (negative_result && temp != 0)
 			temp.setNegative();
 
-		temp.timesTen(bn2.getDecimalCount());
+		temp.leftShift(bn2.getDecimalCount());
 		return temp;
 	}
 
 	bignum factorial(const bignum &bn)
 	{
-		if (bn >= bignum(500))
+		if (bn > bignum(1000))
 			throw error_handler(__FILE__, __LINE__, "The desired calculation is too large");
 
 		bignum temp(bn);
 
-		for (bignum counter(bn); counter > (int)1; counter--)
+		for (bignum counter(bn); counter > 1; counter--)
 		{
 			if (bn > counter)
 				temp *= counter;
@@ -919,7 +928,7 @@ namespace jep
 
 	bignum modulo(const bignum &bn1, const bignum &bn2)
 	{
-		if (bn1.getNegative() != bn2.getNegative())
+		if (bn1.isNegative() != bn2.isNegative())
 			return modulo(bn1.absolute(), bn2.absolute()) * -1;
 
 		bignum temp(bn1);
@@ -928,92 +937,6 @@ namespace jep
 			temp -= bn2;
 
 		return temp;
-	}
-
-	bool divisibleByThree(const bignum &bn)
-	{
-		if (bn.getDecimalCount() > 0)
-			return false;
-
-		bignum temp(bn);
-		temp.convertBase(10);
-
-		int sumdigits = 0;
-		for (int i = 0; i < temp.getDigitRange(); i++)
-			sumdigits += temp.getDigit(PRECISION + i);
-
-		if (sumdigits % 3 == 0)
-			return true;
-
-		else return false;
-	}
-
-	bool divisibleByFive(const bignum &bn)
-	{
-		if (bn.getDecimalCount() > 0)
-			return false;
-
-		bignum temp(bn);
-		temp.convertBase(10);
-
-		if (temp.getDigit(PRECISION) == 5 || temp.getDigit(PRECISION) == 0)
-			return true;
-
-		else return false;
-	}
-
-	bool divisibleBySeven(const bignum &bn)
-	{
-		if (bn.getDecimalCount() > 0)
-			return false;
-
-		bignum temp(bn.absolute());
-		temp.convertBase(10);
-
-		if (temp == 7)
-			return true;
-
-		if (temp < 10)
-			return false;
-
-		bignum last_digit(temp.getDigit(PRECISION));
-
-		bignum rest_of_digits = temp - last_digit;
-		rest_of_digits.divideByTen(1);
-
-		return divisibleBySeven(rest_of_digits - (last_digit * 2));
-	}
-
-	bool checkPrime(const bignum &bn)
-	{
-		if (bn == 1 || bn == 2 || bn == 3 || bn == 5 || bn == 7)
-			return true;
-
-		if (bn.getNegative() || bn.getDecimalCount() > 0)
-			return false;
-
-		if (bn % 2 == 0)
-			return false;
-
-		if (divisibleBySeven(bn))
-			return false;
-
-		if (divisibleByFive(bn))
-			return false;
-
-		if (divisibleByThree(bn))
-			return false;
-
-		bignum check(1);
-		while (check < bn / 2)
-		{
-			if (bn % check == 0 && check != 1)
-				return false;
-
-			check += 2;
-		}
-
-		return true;
 	}
 
 	void primeFactorization(const bignum &bn, vector<bignum> &factors)
@@ -1039,7 +962,7 @@ namespace jep
 		{
 			factors.push_back(-1);
 
-			if (checkPrime(bn.absolute()))
+			if (bn.absolute().isPrime())
 			{
 				factors.push_back(bn.absolute());
 				return;
@@ -1048,7 +971,7 @@ namespace jep
 			else return primeFactorization(bn.absolute(), factors);
 		}
 
-		if (checkPrime(bn))
+		if (bn.isPrime())
 		{
 			factors.push_back(1);
 			factors.push_back(bn);
@@ -1059,12 +982,12 @@ namespace jep
 		while (bn % temp != 0)
 			temp++;
 
-		if (!checkPrime(bn / temp))
+		if (!(bn / temp).isPrime())
 			primeFactorization(bn / temp, factors);
 
 		else factors.push_back(bn / temp);
 
-		if (!checkPrime(temp))
+		if (!temp.isPrime())
 			primeFactorization(temp, factors);
 
 		else factors.push_back(temp);
@@ -1072,7 +995,7 @@ namespace jep
 
 	bignum greatestCommonFactor(const bignum &bn1, const bignum &bn2)
 	{
-		if (bn1.getNegative() != bn2.getNegative())
+		if (bn1.isNegative() != bn2.isNegative())
 			return greatestCommonFactor(bn1.absolute(), bn2.absolute());
 
 		if (bn1.getDecimalCount() > 0 || bn2.getDecimalCount() > 0)
@@ -1090,15 +1013,15 @@ namespace jep
 		for (int i = 2; lowest > i; i++)
 		{
 			if (lowest % i == 0 && highest % i == 0)
-				return bignum(i, bn1.getBase());
+				return bignum(bignum(i), bn1.getBase());
 		}
 
-		return bignum(1, bn1.getBase());
+		return bignum(bignum(1), bn1.getBase());
 	}
 
 	bignum lowestCommonMultiple(const bignum &bn1, const bignum &bn2)
 	{
-		if (bn1.getNegative() != bn2.getNegative())
+		if (bn1.isNegative() != bn2.isNegative())
 			return lowestCommonMultiple(bn1.absolute(), bn2.absolute());
 
 		if (bn1.getDecimalCount() > 0 || bn2.getDecimalCount() > 0)
@@ -1123,40 +1046,40 @@ namespace jep
 		throw error_handler(__FILE__, __LINE__, "An error has occurred");
 	}
 	
-	bignum root(const bignum &bn1, const bignum &bn2, int decimal_places)
+	bignum root(const bignum &nth_root, const bignum &base_number, int decimal_places)
 	{	
-		if (bn1.getBase() != bn2.getBase())
-			return root(bn1, bn2.getConverted(bn1.getBase()), decimal_places);
+		if (nth_root.getBase() != base_number.getBase())
+			return root(nth_root, base_number.getConverted(nth_root.getBase()), decimal_places);
 
-		if (bn2.getNegative())
+		if (base_number.isNegative())
 		{
-			if (bn1 % 2 == 0)
+			if (nth_root % 2 == 0)
 				throw error_handler(__FILE__, __LINE__, "The program attempted to compute an irrational value");
 
-			else return root(bn1, bn2.absolute(), decimal_places) * -1;
+			else return root(nth_root, base_number.absolute(), decimal_places) * -1;
 		}	
 
-		if (bn2.getZero() || bn2 == 1)
-			return bn2;
+		if (base_number.isZero() || base_number == 1)
+			return base_number;
 
 		//cross-checks the root being tested to the precision threshold specified
 		bignum precision_check(1);
-		precision_check.setBase(bn1.getBase());
-		precision_check.divideByTen(decimal_places);
-		bignum range_low = bn2 - precision_check;
-		bignum range_high = bn2 + precision_check;
+		precision_check.setBase(nth_root.getBase());
+		precision_check.rightShift(decimal_places);
+		bignum range_low = base_number - precision_check;
+		bignum range_high = base_number + precision_check;
 
 		bignum root_test;
-		root_test = bn2 < 1 ? bn2*bn1 : bn2 / bn1;
+		root_test = base_number < 1 ? base_number * nth_root : base_number / nth_root;
 
 		//TODO: refine increment function to scale depending on the size of the number being tested
 		bignum increment(1);
-		increment.setBase(bn1.getBase());
-		if (bn2 < 1)
-			increment.divideByTen(1);
+		increment.setBase(nth_root.getBase());
+		if (base_number < 1)
+			increment.rightShift(1);
 
 		bignum answer_check;
-		answer_check.setBase(bn1.getBase());
+		answer_check.setBase(nth_root.getBase());
 
 		//sets once function finds general region of the answer
 		bool approximate = false;
@@ -1166,26 +1089,26 @@ namespace jep
 			//adjusts number precision to check for nearest round roots
 			//prevents function from returning 3.99999 instead of 4
 			if (!approximate)
-				root_test.adjustPrecision(increment.getDecimalCount());
+				root_test.roundToIndex(ONES_PLACE - increment.getDecimalCount());
 
-			 answer_check = exponent(root_test, bn1);
+			answer_check = exponent(root_test, nth_root);
 
 			if (answer_check > range_low && answer_check < range_high)
 				return root_test;
 
-			if (answer_check > bn2)
+			if (answer_check > base_number)
 			{
 				if (approximate)
 				{
 					root_test -= increment;
-					increment.divideByTen(1);
+					increment.rightShift(1);
 					root_test += increment;
 				}
 
-				else root_test /= bn1;
+				else root_test /= nth_root;
 			}
 				
-			else if (answer_check < bn2)
+			else if (answer_check < base_number)
 			{
 				if (!approximate)
 					approximate = true;
@@ -1195,33 +1118,33 @@ namespace jep
 		}
 	}
 
-	bignum exponent(const bignum &bn1, const bignum &bn2)
+	bignum exponent(const bignum &base_value, const bignum &power)
 	{
-		if (bn1.getBase() != bn2.getBase())
-			return exponent(bn1, bn2.getConverted(bn1.getBase()));
+		if (base_value.getBase() != power.getBase())
+			return exponent(base_value, power.getConverted(power.getBase()));
 
 		bignum one(1);
-		one.setBase(bn1.getBase());
+		one.setBase(base_value.getBase());
 		one.setPositive();
 
-		if (bn2.getDecimalCount() > 0)
+		if (power.getDecimalCount() > 0)
 			throw error_handler(__FILE__, __LINE__, "Cannot use decimals as exponential powers");		
 
-		bignum counter = bn2.absolute();
-		bignum temp(bn1);
+		bignum counter = power.absolute();
+		bignum temp(base_value);
 
 		//n^0 always returns 1
-		if (bn2.getZero())
+		if (power.isZero())
 			return one;
 
 		while (counter > one)
 		{
-			temp *= bn1;
+			temp *= base_value;
 			counter--;
 		}
 
 		//if the power is negative, return 1/solution
-		if (bn2.getNegative())
+		if (power.isNegative())
 			temp = divideNumbers(one, temp);
 
 		return temp;
@@ -1230,6 +1153,27 @@ namespace jep
 	//----------------
 	//BIGNUM OPERATORS
 	//----------------
+
+	bignum::operator int() const
+	{
+		bignum temp(*this);
+		temp.roundToIndex(ONES_PLACE);
+		temp.convertBase(10);
+		bignum int_max(numeric_limits<int>::max());
+		bignum int_min(numeric_limits<int>::min());
+
+		if (temp > int_max || temp < int_min)
+			throw error_handler(__FILE__, __LINE__, "attempted conversion failed: bignum is too large to be converted to an int");
+
+		int return_int = 0;
+		for (int i = 0; i < digitRange; i++)
+		{
+			int power = (pow((double)10, i));
+			return_int += (power * digits[ONES_PLACE + i]);
+		}
+		
+		return return_int;
+	}
 
 	bignum& bignum::operator = (const bignum& b)
 	{
@@ -1245,7 +1189,7 @@ namespace jep
 
 		decimal = (decimalCount < b.getDecimalCount() ? b.getDecimalCount() : decimalCount);
 
-		for (int i = (PRECISION - decimal); i < highestDigits; i++)
+		for (int i = (ONES_PLACE - decimal); i < highestDigits; i++)
 		{
 			if (i >= MAXDIGITS)
 				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
@@ -1253,7 +1197,7 @@ namespace jep
 			digits[i] = b.getDigit(i);
 		}
 
-		negative = b.getNegative();
+		negative = b.isNegative();
 
 		updateDigits();
 
@@ -1264,13 +1208,98 @@ namespace jep
 	//GENERAL UTILITIES
 	//-----------------
 
+	bool bignum::isPrime() const
+	{
+		if (*this == 1 || *this == 2 || *this == 3 || *this == 5 || *this == 7)
+			return true;
+
+		if (negative || decimalCount > 0)
+			return false;
+
+		if (*this % 2 == 0)
+			return false;
+
+		if (isDivisibleBySeven())
+			return false;
+
+		if (isDivisibleByFive())
+			return false;
+
+		if (isDivisibleByThree())
+			return false;
+
+		bignum check(1);
+		while (check < *this / 2)
+		{
+			if (*this % check == 0 && check != 1)
+				return false;
+
+			check += 2;
+		}
+
+		return true;
+	}
+
+	bool bignum::isDivisibleByThree() const
+	{
+		if (decimalCount > 0)
+			return false;
+
+		bignum temp(getConverted(10));
+
+		int sumdigits = 0;
+		for (int i = 0; i < temp.getDigitRange(); i++)
+			sumdigits += temp.getDigit(ONES_PLACE + i);
+
+		if (sumdigits % 3 == 0)
+			return true;
+
+		else return false;
+	}
+
+	bool bignum::isDivisibleByFive() const
+	{
+		if (decimalCount > 0)
+			return false;
+
+		bignum temp(getConverted(10));
+
+		if (temp.getDigit(ONES_PLACE) == 5 || temp.getDigit(ONES_PLACE) == 0)
+			return true;
+
+		else return false;
+	}
+
+	bool bignum::isDivisibleBySeven() const
+	{
+		if (decimalCount > 0)
+			return false;
+
+		bignum temp(getConverted(10).absolute());
+
+		if (temp == 7)
+			return true;
+
+		if (temp < 10)
+			return false;
+
+		bignum last_digit(temp.getDigit(ONES_PLACE));
+
+		bignum rest_of_digits = temp - last_digit;
+		rest_of_digits.rightShift(1);
+
+		bignum new_test(rest_of_digits - (last_digit * 2));
+
+		return new_test.isDivisibleBySeven();
+	}
+
 	void bignum::setBase(int n)
 	{
-		int marker = PRECISION - getDecimalCount();
+		int index = ONES_PLACE - getDecimalCount();
 
 		for (int i = 0; i < digitRange; i++)
 		{
-			if (digits[marker + i] >= n)
+			if (digits[index + i] >= n)
 				throw error_handler(__FILE__, __LINE__, "the specified base is smaller than one or more of the bignum digits, could not set base manually");
 		}
 
@@ -1315,17 +1344,17 @@ namespace jep
 		{
 			for (int i = 0; i < digitRange; i++)
 			{
-				int marker(left_most - i);
+				int index(left_most - i);
 
-				if (marker >= MAXDIGITS || marker < 0)
+				if (index >= MAXDIGITS || index < 0)
 					throw error_handler(__FILE__, __LINE__, "void bignum::convertBase(int n): The program has attempted to calculate a value outside of its limits");
 
 				//each digit of the number is evaluated evaluated X * 10^n format
-				bignum original_digit(getDigit(marker));
+				bignum original_digit(getDigit(index));
 				original_digit.convertBaseSimple(base);
 				bignum original_ten(10);
 				original_ten.setBase(base);
-				bignum original_nth(marker - PRECISION);
+				bignum original_nth(index - ONES_PLACE);
 				original_nth.convertBaseSimple(base);
 
 				//each of the above format is converted simply
@@ -1373,8 +1402,8 @@ namespace jep
 		bignum temp(*this);
 		string tempString;
 
-		if (decimal_places > PRECISION)
-			decimal_places = PRECISION;
+		if (decimal_places > ONES_PLACE)
+			decimal_places = ONES_PLACE;
 
 		temp.updateDigits();
 
@@ -1401,22 +1430,22 @@ namespace jep
 		}
 
 
-		int comma = (temp.getDigitCount() - PRECISION) % 3;
+		int comma = (temp.getDigitCount() - ONES_PLACE) % 3;
 
 		if (negative == true)
 			tempString += "-";
 
-		temp.adjustPrecision(decimal_places);
+		temp.roundToIndex(ONES_PLACE - decimal_places);
 
 		int counter = temp.getDigitRange();
 		for (int i = 0; i < counter; i++)
 		{
-			int target = temp.getDigitCount() - i - 1;
+			int index = temp.getDigitCount() - i - 1;
 
-			if (target == (PRECISION - 1))
+			if (index == (ONES_PLACE - 1))
 				tempString += ".";
 
-			else if (comma == 0 && (temp.getDigitCount() - i) >= PRECISION)
+			else if (comma == 0 && (temp.getDigitCount() - i) >= ONES_PLACE)
 			{
 				if (i>0 && include_commas == true)
 					tempString += ",";
@@ -1424,7 +1453,7 @@ namespace jep
 				comma = 3;
 			}
 
-			tempString += temp.getDigitString(temp.getDigit(target));
+			tempString += temp.getDigitString(temp.getDigit(index));
 
 			comma--;
 		}
@@ -1450,12 +1479,12 @@ namespace jep
 	}
 
 	//multiplies the number by 10 in its native base by literally shifting digit
-	void bignum::timesTen(int n)
+	void bignum::leftShift(int places)
 	{
 		if (digitCount >= MAXDIGITS - 1)
 			throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
-		for (int i = 0; i < n; i++)
+		for (int i = 0; i < places; i++)
 		{
 			for (int c = 0; c < digitRange; c++)
 				digits[digitCount - c] = digits[left_most - c];
@@ -1467,16 +1496,16 @@ namespace jep
 	}
 
 	//divides the number by 10 in its native base by literally shifting digit
-	void bignum::divideByTen(int n)
+	void bignum::rightShift(int places)
 	{
-		for (int i = n; i > 0; i--)
+		for (int i = places; i > 0; i--)
 		{
-			for (int c = right_most; c <= digitCount; c++)
+			for (int n = right_most; n <= digitCount; n++)
 			{
-				if (c == 0)
+				if (n == 0)
 					continue;
 
-				digits[c - 1] = digits[c];
+				digits[n - 1] = digits[n];
 			}
 			updateDigits();
 		}
@@ -1486,14 +1515,16 @@ namespace jep
 	//refreshes digitCount and decimalCount
 	void bignum::updateDigits()
 	{
+		is_zero = false;
+
 		digitCount = 0;
 		decimalCount = 0;
 
 		for (int i = MAXDIGITS - 1; i > 0; i--)
 		{
-			if (i == PRECISION)
+			if (i == ONES_PLACE)
 			{
-				digitCount = PRECISION + 1;
+				digitCount = ONES_PLACE + 1;
 				left_most = i;
 				break;
 			}
@@ -1506,25 +1537,28 @@ namespace jep
 			}
 		}
 
-		for (int i = 0; i < PRECISION; i++)
+		for (int i = 0; i < ONES_PLACE; i++)
 		{
 			if (digits[i]>0)
 			{
-				decimalCount = PRECISION - i;
+				decimalCount = ONES_PLACE - i;
 				right_most = i;
 				break;
 			}
 
-			if (i == PRECISION - 1)
-				right_most = PRECISION;
+			if (i == ONES_PLACE - 1)
+				right_most = ONES_PLACE;
 		}
 
-		if (decimalCount == 0 && digitCount == (PRECISION + 1))
+		if (decimalCount == 0 && digitCount == (ONES_PLACE + 1))
 		{
-			if (digits[PRECISION] == 0)
+			if (digits[ONES_PLACE] == 0)
+			{
 				setPositive();
+				is_zero = true;
+			}
 
-			right_most = PRECISION;
+			right_most = ONES_PLACE;
 		}
 
 		//sets number of operative digits
@@ -1532,7 +1566,6 @@ namespace jep
 		digitRange = left_most - right_most + 1;
 	}
 
-	//returns absolute value of bignum
 	const bignum bignum::absolute() const
 	{
 		bignum temp = *this;
@@ -1545,38 +1578,86 @@ namespace jep
 	const bignum bignum::noDecimal() const
 	{
 		bignum temp(*this);
-		temp.timesTen(getDecimalCount());
+		temp.leftShift(getDecimalCount());
 		return temp;
 	}
 
-	//returns bignum with no decimal places
-	const bignum bignum::withoutDecimals() const
+	//rounds the number to a speecific position, rounding each previous digit first
+	void bignum::roundAllDigitsToIndex(int index)
 	{
-		bignum temp(*this);
+		if (index == 0)
+			return;
 
-		for (int i = 0; i < PRECISION; i++)
-			temp.setDigit(i, 0);
+		if (index < 1 || index > MAXDIGITS)
+			throw error_handler(__FILE__, __LINE__, "program attempted to round outside the limits of the bignum");
 
-		return temp;
-	}
-
-	//rounds the number to a specific number of decimal places
-	void bignum::adjustPrecision(int n)
-	{
-		int marker = PRECISION - n;
-
-		if (digits[marker - 1] >= (base / 2))
+		for (int i = 1; i <= index; i++)
 		{
-			bignum increase;
-			increase.setBase(base);
-			increase.setDigit(marker, 1);
+			if (digits[i - 1] >= (base / 2))
+			{
+				bignum increment;
+				increment.setBase(base);
+				increment.setDigit(i, 1);
 
-			(*this) += increase;
-			updateDigits();
+				*this += increment;
+			}
 		}
 
-		for (int i = 0; i < marker; i++)
+		for (int i = 0; i < index; i++)
 			digits[i] = 0;
+
+		updateDigits();
+	}
+
+	//rounds the number to a specific position of digits[index]
+	void bignum::roundToIndex(int index)
+	{
+		if (index == 0)
+			return;
+
+		if (index < 1 || index > MAXDIGITS)
+			throw error_handler(__FILE__, __LINE__, "program attempted to round outside the limits of the bignum");
+
+		if (digits[index - 1] >= (base / 2))
+		{
+			bignum increment;
+			increment.setBase(base);
+			increment.setDigit(index, 1);
+
+			*this += increment;
+		}
+
+		for (int i = 0; i < index; i++)
+			digits[i] = 0;
+
+		updateDigits();
+	}
+
+	void bignum::roundDownToIndex(int index)
+	{
+		for (int i = 0; i < index; i++)
+			setDigit(i, 0);
+
+		updateDigits();
+	}
+
+	void bignum::roundUpToIndex(int index)
+	{
+		//first checks to see if the number is already rounded
+		bignum round_test;
+		round_test.setBase(base);
+		round_test.setDigit(index, 1);
+
+		if (*this % round_test == 0)
+			return;
+
+		roundDownToIndex(index);
+
+		bignum increment;
+		increment.setBase(base);
+		increment.setDigit(index, 1);
+
+		*this += increment;
 
 		updateDigits();
 	}
@@ -1587,12 +1668,6 @@ namespace jep
 		bignum temp2 = bignum(fibonacci(b - 1));
 
 		return (temp2 == 0 ? 0 : temp1 / temp2);
-	}
-
-	bignum golden(int n)
-	{
-		bignum temp(n);
-		return golden(temp);
 	}
 
 	bignum fibonacci(const bignum &b)
@@ -1643,16 +1718,10 @@ namespace jep
 		return temp;
 	}
 
-	bignum fibonacci(int n)
-	{
-		bignum temp(n);
-		return fibonacci(temp);
-	}
-
 	//returns random number within range with added resolution
 	bignum randomNumberAddPrecision(const bignum &bn1, const bignum &bn2, int add_precision)
 	{
-		if (add_precision > PRECISION)
+		if (add_precision > ONES_PLACE)
 			throw error_handler(__FILE__, __LINE__, "specified precision was too fine");
 
 		if (bn1.getBase() != bn2.getBase())
@@ -1675,9 +1744,9 @@ namespace jep
 
 		for (int i = 0; i < counter; i++)
 		{
-			int marker = (start - i);
+			int index = (start - i);
 			tempdigit = (rand() % difference.getBase());
-			temp.setDigit(marker, tempdigit);
+			temp.setDigit(index, tempdigit);
 		}
 
 		bignum increment;
@@ -1686,7 +1755,7 @@ namespace jep
 
 		difference += increment;
 
-		while (temp >= difference && temp.getNegative() == false)
+		while (temp >= difference && temp.isNegative() == false)
 			temp -= difference;
 
 		return (bn1 > bn2 ? bn2 + temp : bn1 + temp);
@@ -1695,7 +1764,7 @@ namespace jep
 	//returns random number within range with a specified resolution
 	bignum randomNumberForcePrecision(const bignum &bn1, const bignum &bn2, int force_precision)
 	{
-		if (force_precision > PRECISION)
+		if (force_precision > ONES_PLACE)
 			throw error_handler(__FILE__, __LINE__, "specified precision was too fine");
 
 		if (bn1.getBase() != bn2.getBase())
@@ -1710,23 +1779,23 @@ namespace jep
 		temp.setBase(bn1.getBase());
 
 		bignum bn1_adjusted(bn1);
-		bn1_adjusted.adjustPrecision(force_precision);
+		bn1_adjusted.roundToIndex(ONES_PLACE - force_precision);
 
 		bignum bn2_adjusted(bn1);
-		bn2_adjusted.adjustPrecision(force_precision);
+		bn2_adjusted.roundToIndex(ONES_PLACE - force_precision);
 
 		difference = (bn1_adjusted > bn2_adjusted ? bn1_adjusted - bn2_adjusted : bn2_adjusted - bn1_adjusted);
 
 		int start = difference.getDigitCount() - 1;
 		int tempdigit;
 
-		int counter = (difference.getDigitCount() - (PRECISION - force_precision));
+		int counter = (difference.getDigitCount() - (ONES_PLACE - force_precision));
 
 		for (int i = 0; i < counter; i++)
 		{
-			int marker = (start - i);
+			int index = (start - i);
 			tempdigit = (rand() % difference.getBase());
-			temp.setDigit(marker, tempdigit);
+			temp.setDigit(index, tempdigit);
 		}
 
 		bignum increment;
@@ -1740,71 +1809,6 @@ namespace jep
 
 		return (bn1_adjusted > bn2_adjusted ? bn2_adjusted + temp : bn1_adjusted + temp);
 	}
-
-	signed long int getInt(bignum bn)
-	{
-		bignum min(numeric_limits<int>::min());
-		bignum max(numeric_limits<int>::max());
-
-		signed long int temp = 0;
-		bn.convertBase(10);
-
-		if (bn > max || bn < min)
-			throw error_handler(__FILE__, __LINE__, "the targeted bignum is too large to convert to an integer");
-
-		for (int i = PRECISION; i < bn.getDigitCount(); i++)
-		{
-			int power = (pow((double)10, i - PRECISION));
-			int toAdd = bn.getDigit(i) * power;
-			temp += toAdd;
-		}
-
-		return (bn.getNegative() == true ? temp * -1 : temp);
-	}
-
-	/*
-	long double getDouble(bignum bn)
-	{
-	bignum min(numeric_limits<double>::min());
-	bignum max(numeric_limits<double>::max());
-
-	double temp = 0;
-	bn.convertBase(10);
-
-	if (bn > max || bn < min)
-	throw error_handler(__FILE__, __LINE__, "the targeted bignum is too large to convert to a double");
-
-	for (int i = PRECISION; i < bn.getDigitCount(); i++)
-	{
-	int power = (pow((double)10, i - PRECISION));
-	int toAdd = bn.getDigit(i) * power;
-	temp += toAdd;
-	}
-
-	return (bn.getNegative() == true ? temp * -1 : temp);
-	}
-
-	long float getFloat(bignum bn)
-	{
-	bignum min(numeric_limits<float>::min());
-	bignum max(numeric_limits<float>::max());
-
-	float temp = 0;
-	bn.convertBase(10);
-
-	if (bn > max || bn < min)
-	throw error_handler(__FILE__, __LINE__, "the targeted bignum is too large to convert to a double");
-
-	for (int i = PRECISION; i < bn.getDigitCount(); i++)
-	{
-	int power = (pow((double)10, i - PRECISION));
-	int toAdd = bn.getDigit(i) * power;
-	temp += toAdd;
-	}
-
-	return (bn.getNegative() == true ? temp * -1 : temp);
-	}
-	*/
 
 	//returns average of all values passed
 	bignum average(vector<bignum> numbers_passed)

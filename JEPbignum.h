@@ -20,7 +20,8 @@ using std::string;
 using std::numeric_limits;
 
 #define MAXDIGITS 1024
-#define PRECISION 100
+#define ONES_PLACE 100
+#define DEFAULT_FLOAT_PRECISION 10
 
 namespace jep
 {
@@ -37,30 +38,21 @@ namespace jep
 	bignum divideNumbers(const bignum &bn1, const bignum &bn2);
 	bignum factorial(const bignum &bn);
 	bignum combinations(const bignum &bn1, const bignum &bn2);
-	bignum exponent(const bignum &bn1, const bignum &bn2);
+	bignum exponent(const bignum &base_value, const bignum &power);
 
 	//TOADD
 	//bignum logarithm(const bignum &bn1, const bignum &bn2);
 
 	bignum modulo(const bignum &bn1, const bignum &bn2);
-	bool checkPrime(const bignum &bn);
-	bool divisibleByThree(const bignum &bn);
-	bool divisibleByFive(const bignum &bn);
-	bool divisibleBySeven(const bignum &bn);
 	void primeFactorization(const bignum &bn1, vector<bignum> &factors);
 	bignum greatestCommonFactor(const bignum &bn1, const bignum &bn2);
 	bignum lowestCommonMultiple(const bignum &bn1, const bignum &bn2);
-	bignum root(const bignum &bn1, const bignum &bn2, int decimal_places);
+	bignum root(const bignum &nth_root, const bignum &base, int precision);
 	bignum fibonacci(const bignum &bn1);
-	bignum fibonacci(int n);
 	bignum golden(const bignum &bn1);
-	bignum golden(int n);
 	bignum randomNumberForcePrecision(const bignum &bn1, const bignum &bn2, int forceprecision);
 	bignum randomNumberAddPrecision(const bignum &bn1, const bignum &bn2, int addprecision);
 	bignum average(vector<bignum> numbers_passed);
-	signed long int getInt(bignum bn);
-	double getDouble(bignum bn);
-	float getFloat(bignum bn);
 
     class bignum
     {
@@ -70,10 +62,12 @@ namespace jep
     		bignum();
     		bignum(int n);
 			bignum(float f);
+			bignum(float f, int decimal_places);
 			bignum(double d);
+			bignum(double d, int decimal_places);
     		bignum(string s);
     		bignum(string s, int baseGiven);
-			explicit bignum(const bignum &bn, int baseGiven) { *this = bn.getConverted(baseGiven); }
+			explicit bignum(const bignum &bn, int desired_base) { *this = bn.getConverted(desired_base); }
     		~bignum() {};    
     
 			void setDigit(int n, int s) { digits[n] = s; updateDigits(); }
@@ -81,34 +75,48 @@ namespace jep
 			void setPositive() { negative = false; }
 			void setBase(int n);
 
-			bignum getConverted(int n) const { bignum converted(*this); converted.convertBase(n); return converted; }
 			int getDigit(int n) const { return digits[n]; }
 			int getDigitCount() const { return digitCount; }
 			int getDecimalCount() const { return decimalCount; }
     		int getBase() const {return base;}
-			int getDigitRange() const { return digitRange; }
-			bool getNegative() const { return negative; }		
+			int getDigitRange() const { return digitRange; }	
     		string getDigitString (int n) const;
     		string getNumberString(bool include_commas, bool percent, int decimal_places) const;
-			bool getZero() const { bignum zero; zero.setBase(base); return equals(*this, zero); }
+
+			bool isZero() const {return is_zero; }
+			bool isPrime() const;
+			bool isNegative() const { return negative; }
     		
     		void updateDigits();
     		void convertBase(int n);
     		void convertBaseSimple(int n);
-    		void timesTen (int n);
-    		void divideByTen (int n);
-			void adjustPrecision(int n);
-			void decrement();
+    		void leftShift (int places);
+    		void rightShift (int places);
+
+			void roundToIndex(int index);
+			void roundDownToIndex(int index);
+			void roundUpToIndex(int index);
+			void roundAllDigitsToIndex(int index);
+
+			const bignum getConverted(int n) const { bignum converted(*this); converted.convertBase(n); return converted; }
+			const bignum getRounded(int index) const { bignum temp(*this); temp.roundToIndex(index); return temp; }
+			const bignum getRoundedUp(int index) const { bignum temp(*this); temp.roundUpToIndex(index); return temp; }
+			const bignum getRoundedDown(int index) const { bignum temp(*this); temp.roundDownToIndex(index); return temp; }
+			const bignum getRoundedAllDigits(int index) const { bignum temp(*this); temp.roundAllDigitsToIndex(index); return temp; }
 
 			const bignum absolute() const;
 			const bignum noDecimal() const;
-			const bignum withoutDecimals() const;
 
 			const bignum operator + (const bignum &bn) const { return addNumbers(*this, bn); }
 			const bignum operator - (const bignum &bn) const { return subtractNumbers(*this, bn); }
 			const bignum operator * (const bignum &bn) const { return multiplyNumbers(*this, bn); }
 			const bignum operator / (const bignum &bn) const { return divideNumbers(*this, bn); }
 			const bignum operator % (const bignum &bn) const { return modulo(*this, bn); }
+
+			explicit operator int() const;
+			//explicit operator float() const;
+			//explicit operator double() const;
+			explicit operator string() const { return getNumberString(false, false, decimalCount); }
 
 			bignum& operator += (const bignum& bn) { *this = addNumbers(*this, bn); return *this; }
 			bignum& operator -= (const bignum& bn) { *this = subtractNumbers(*this, bn); return *this; }
@@ -129,12 +137,17 @@ namespace jep
 			bignum& operator = (const bignum& b);
     
     	private:
+			bool isDivisibleByThree() const;
+			bool isDivisibleByFive() const;
+			bool isDivisibleBySeven() const;
+
     		int digits[MAXDIGITS];
     		int digitCount;
     		int decimalCount;
     		int digitRange;
     		bool negative;
     		int base;
+			bool is_zero;
 
 			int left_most;
 			int right_most;
