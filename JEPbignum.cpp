@@ -155,8 +155,12 @@ namespace jep
 		bignum big_mantissa(mantissa, 2, false);
 		big_mantissa.rightShift(mantissa_delim);
 
-		bignum big_exponent = bignum(exponent, 2, false) - bignum(exponent_bias);
-		bignum mantissa_multiplier = jep::exponent(bignum(2), big_exponent);
+		bignum big_exponent(exponent, 2, false);
+		bignum big_exponent_bias(exponent_bias);
+		big_exponent_bias.convertBase(2);
+		big_exponent -= big_exponent_bias;
+		big_exponent.isZero();
+		bignum mantissa_multiplier(jep::exponent(bignum(2), big_exponent));
 		mantissa_multiplier.convertBase(2);
 		big_mantissa += 1;
 
@@ -1120,6 +1124,9 @@ namespace jep
 
 	bignum exponent(const bignum &base_value, const bignum &power)
 	{
+		if (power.isZero())
+			return bignum(bignum(1), base_value.getBase());
+
 		if (base_value.getBase() != power.getBase())
 			return exponent(base_value, power.getConverted(power.getBase()));
 
