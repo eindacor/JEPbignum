@@ -6,17 +6,6 @@ namespace jep
 	//CLASS CONSTRUCTORS
 	//------------------
 
-	bignum::bignum()
-	{
-		for (int i = 0; i < MAXDIGITS; i++)
-			digits[i] = 0;
-
-		decimalCount = 0;
-		base = 10;
-		negative = false;
-		updateDigits();
-	}
-
 	bignum::bignum(int n)
 	{
 		bool original_negative = (n < 0);
@@ -24,8 +13,7 @@ namespace jep
 		if (n < 0)
 			n *= -1;
 
-		for (int i = 0; i < MAXDIGITS; i++)
-			digits[i] = 0;
+		initializeBignum();
 
 		for (int i = 0; i < 20; i++)
 		{
@@ -38,23 +26,13 @@ namespace jep
 			else digits[i + ONES_PLACE] = reduced / (pow((double)10, i));
 		}
 
-		decimalCount = 0;
-		base = 10;
 		updateDigits();
 		negative = original_negative;
 	}
 
-	bignum::bignum(double d)
-	{
-		*this = bignum(d, ONES_PLACE - DEFAULT_FLOAT_PRECISION);
-	}
-
 	bignum::bignum(double d, int decimal_places)
 	{
-		for (int i = 0; i < MAXDIGITS; i++)
-			digits[i] = 0;
-
-		updateDigits();
+		initializeBignum();
 
 		vector<int> exponent;
 		vector<int> mantissa;
@@ -71,7 +49,7 @@ namespace jep
 		double_converter converter;
 		converter.d = d;
 
-		unsigned long long int compare = 1;
+		unsigned int compare = 1;
 
 		for (int i = 0; i < double_bits; i++)
 		{
@@ -91,11 +69,20 @@ namespace jep
 
 		bignum big_mantissa(mantissa, 2, false);
 		big_mantissa.rightShift(mantissa_delim);
+
+		bignum big_exponent(exponent, 2, false);
+		bignum big_exponent_bias(exponent_bias);
+		big_exponent_bias.convertBase(2);
+		big_exponent -= big_exponent_bias;
+
+		//generates multiplier of the floating format
+		bignum mantissa_multiplier(10);
+		mantissa_multiplier.setBase(2);
+		mantissa_multiplier = jep::exponent(mantissa_multiplier, big_exponent);
+		mantissa_multiplier.convertBase(2);
 		big_mantissa += 1;
 
-		bignum big_exponent = bignum(exponent, 2, false) - bignum(exponent_bias);
-
-		bignum temp = big_mantissa * jep::exponent(bignum(2), big_exponent);
+		bignum temp = big_mantissa * mantissa_multiplier;
 
 		if (sign)
 			temp.setNegative();
@@ -107,17 +94,9 @@ namespace jep
 		roundToIndex(ONES_PLACE - decimal_places);
 	}
 
-	bignum::bignum(float f)
-	{
-		*this = bignum(f, DEFAULT_FLOAT_PRECISION);
-	}
-
 	bignum::bignum(float f, int decimal_places)
 	{
-		for (int i = 0; i < MAXDIGITS; i++)
-			digits[i] = 0;
-
-		updateDigits();
+		initializeBignum();
 
 		vector<int> exponent;
 		vector<int> mantissa;
@@ -159,8 +138,11 @@ namespace jep
 		bignum big_exponent_bias(exponent_bias);
 		big_exponent_bias.convertBase(2);
 		big_exponent -= big_exponent_bias;
-		big_exponent.isZero();
-		bignum mantissa_multiplier(jep::exponent(bignum(2), big_exponent));
+		
+		//generates multiplier of the floating format
+		bignum mantissa_multiplier(10);
+		mantissa_multiplier.setBase(2);
+		mantissa_multiplier = jep::exponent(mantissa_multiplier, big_exponent);
 		mantissa_multiplier.convertBase(2);
 		big_mantissa += 1;
 
@@ -178,9 +160,8 @@ namespace jep
 
 	bignum::bignum(vector<int> n, int set_base, bool is_negative)
 	{
+		initializeBignum();
 		base = set_base;
-		for (int i = 0; i < MAXDIGITS; i++)
-			digits[i] = 0;
 
 		int count = (ONES_PLACE - 1) + n.size();
 		for (vector<int>::iterator i = n.begin(); i != n.end(); i++)
@@ -201,9 +182,8 @@ namespace jep
 
 	bignum::bignum(vector<int> n, int offset, int set_base, bool is_negative)
 	{
+		initializeBignum();
 		base = set_base;
-		for (int i = 0; i < MAXDIGITS; i++)
-			digits[i] = 0;
 
 		int count = (ONES_PLACE - 1) + n.size();
 		count += offset;
@@ -225,11 +205,7 @@ namespace jep
 
 	bignum::bignum(string s)
 	{
-		for (int i = 0; i < MAXDIGITS; i++)
-			digits[i] = 0;
-
-		negative = false;
-		base = 10;
+		initializeBignum();
 
 		vector <int> numbersToAdd;
 		int numbersAdded = 0;
@@ -264,10 +240,7 @@ namespace jep
 				if (decimal == true)
 					throw error_handler(__FILE__, __LINE__, "constructor failed, number contains multiple decimal points");
 
-				else
-				{
-					decimal = true;
-				}
+				else decimal = true;
 
 				break;
 
@@ -309,6 +282,7 @@ namespace jep
 				}
 
 				else throw error_handler(__FILE__, __LINE__, "constructor failed, invalid character(s) included");
+
 				break;
 			}
 		}
@@ -329,10 +303,7 @@ namespace jep
 
 	bignum::bignum(string s, int baseGiven)
 	{
-		for (int i = 0; i < MAXDIGITS; i++)
-			digits[i] = 0;
-
-		negative = false;
+		initializeBignum();
 		base = baseGiven;
 
 		vector <int> numbersToAdd;
@@ -416,6 +387,15 @@ namespace jep
 	//BASIC BIGNUM FUNCTIONS
 	//----------------------
 
+	void bignum::initializeBignum()
+	{
+		for (int i = 0; i < MAXDIGITS; i++)
+			digits[i] = 0;
+
+		base = 10;
+		updateDigits();
+	}
+
 	bool equals(const bignum &bn1, const bignum &bn2)
 	{
 		if (bn1.getBase() != bn2.getBase())
@@ -440,20 +420,19 @@ namespace jep
 
 	bool lessThan(const bignum &bn1, const bignum &bn2)
 	{
-		//if bases are different, convert the second and re-evaluate
 		if (bn1.getBase() != bn2.getBase())
 			return lessThan(bn1, bn2.getConverted(bn1.getBase()));
 
 		if (bn1 == bn2)
 			return false;
 
-		if (bn1.isNegative() == true && bn2.isNegative() == false)
+		if (bn1.isNegative() && !bn2.isNegative())
 			return true;
 
-		if (bn1.isNegative() == false && bn2.isNegative() == true)
+		if (!bn1.isNegative() && bn2.isNegative())
 			return false;
 
-		if (bn1.isNegative() == true && bn2.isNegative() == true)
+		if (bn1.isNegative() && bn2.isNegative())
 			return (greaterThan(bn1.absolute(), bn2.absolute()));
 
 		if (bn1.getDigitCount() < bn2.getDigitCount())
@@ -483,13 +462,13 @@ namespace jep
 		if (bn1 == bn2)
 			return false;
 
-		if (bn1.isNegative() == true && bn2.isNegative() == false)
+		if (bn1.isNegative() && !bn2.isNegative())
 			return false;
 
-		if (bn1.isNegative() == false && bn2.isNegative() == true)
+		if (!bn1.isNegative() && bn2.isNegative())
 			return true;
 
-		if (bn1.isNegative() == true && bn2.isNegative() == true)
+		if (bn1.isNegative() && bn2.isNegative())
 			return (lessThan(bn1.absolute(), bn2.absolute()));
 
 		if (bn1.getDigitCount() > bn2.getDigitCount())
@@ -526,7 +505,7 @@ namespace jep
 			}
 
 			// -12 + -12 ---> -(12 + 12)
-			if (bn1.isNegative() == true && bn2.isNegative() == true)
+			if (bn1.isNegative() && bn2.isNegative())
 			{
 				bignum temp(addNumbers(bn1.absolute(), bn2.absolute()));
 				temp.setNegative();
@@ -538,7 +517,7 @@ namespace jep
 		if (bn1.absolute() > bn2.absolute())
 		{
 			//	-12 + 8 ---> -(12 - 8)
-			if (bn1.isNegative() == true && bn2.isNegative() == false)
+			if (bn1.isNegative() && !bn2.isNegative())
 			{
 				bignum temp = subtractNumbers(bn1.absolute(), bn2.absolute());
 				temp.setNegative();
@@ -547,11 +526,11 @@ namespace jep
 			}
 
 			//	12 + -8 ---> 12 - 8
-			if (bn1.isNegative() == false && bn2.isNegative() == true)
+			if (!bn1.isNegative() && bn2.isNegative())
 				return subtractNumbers(bn1.absolute(), bn2.absolute());
 
 			//	-12 + -8 ---> -(12 + 8)
-			if (bn1.isNegative() == true && bn2.isNegative() == true)
+			if (bn1.isNegative()&& bn2.isNegative())
 			{
 				bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
 				temp.setNegative();
@@ -563,7 +542,7 @@ namespace jep
 		if (bn1.absolute() < bn2.absolute())
 		{
 			//	-8 + 12 ---> 12 - 8
-			if (bn1.isNegative() == true && bn2.isNegative() == false)
+			if (bn1.isNegative() && !bn2.isNegative())
 			{
 				bignum temp = subtractNumbers(bn2.absolute(), bn1.absolute());
 				temp.updateDigits();
@@ -571,11 +550,11 @@ namespace jep
 			}
 
 			//	8 + -12 ---> 8 - 12
-			if (bn1.isNegative() == false && bn2.isNegative() == true)
+			if (!bn1.isNegative() && bn2.isNegative())
 				return subtractNumbers(bn1.absolute(), bn2.absolute());
 
 			// -8 + -12 ---> -(8 + 12)
-			if (bn1.isNegative() == true && bn2.isNegative() == true)
+			if (bn1.isNegative() && bn2.isNegative())
 			{
 				bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
 				temp.setNegative();
@@ -634,7 +613,7 @@ namespace jep
 		if (bn1.absolute() == bn2.absolute())
 		{
 			//	-12 - 12 ---> -(12 + 12)
-			if (bn1.isNegative() == true && bn2.isNegative() == false)
+			if (bn1.isNegative() && !bn2.isNegative())
 			{
 				bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
 				temp.setNegative();
@@ -643,13 +622,14 @@ namespace jep
 			}
 
 			//	12 - -12 ---> 12 + 12
-			if (bn1.isNegative() == false && bn2.isNegative() == true)
+			if (!bn1.isNegative() && bn2.isNegative())
 				return addNumbers(bn1.absolute(), bn2.absolute());
 
 			//	-12 - -12 ---> 0
-			if (bn1.isNegative() == true && bn2.isNegative() == true)
+			if (bn1.isNegative() && bn2.isNegative())
 			{
-				bignum temp(0);
+				bignum temp;
+				temp.setBase(base);
 				return temp;
 			}
 		}
@@ -658,7 +638,7 @@ namespace jep
 		if (bn1.absolute() > bn2.absolute())
 		{
 			//	-12 - 8 ---> -(12 + 8)
-			if (bn1.isNegative() == true && bn2.isNegative() == false)
+			if (bn1.isNegative() && !bn2.isNegative())
 			{
 				bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
 				temp.setNegative();
@@ -667,11 +647,11 @@ namespace jep
 			}
 
 			//	12 - -8 ---> 12 + 8
-			if (bn1.isNegative() == false && bn2.isNegative() == true)
+			if (!bn1.isNegative()&& bn2.isNegative())
 				return addNumbers(bn1.absolute(), bn2.absolute());
 
 			//	-12 - -8 ---> -(12 - 8)
-			if (bn1.isNegative() == true && bn2.isNegative() == true)
+			if (bn1.isNegative() && bn2.isNegative())
 			{
 				bignum temp = subtractNumbers(bn1.absolute(), bn2.absolute());
 				temp.setNegative();
@@ -684,7 +664,7 @@ namespace jep
 		if (bn1.absolute() < bn2.absolute())
 		{
 			//	8 - 12 ---> -(12 - 8)
-			if (bn1.isNegative() == false && bn2.isNegative() == false)
+			if (!bn1.isNegative()&& !bn2.isNegative())
 			{
 				bignum temp = subtractNumbers(bn2.absolute(), bn1.absolute());
 				temp.setNegative();
@@ -693,7 +673,7 @@ namespace jep
 			}
 
 			//	-8 - 12 ---> -(8 + 12)
-			if (bn1.isNegative() == true && bn2.isNegative() == false)
+			if (bn1.isNegative() && !bn2.isNegative())
 			{
 				bignum temp = addNumbers(bn1.absolute(), bn2.absolute());
 				temp.setNegative();
@@ -702,11 +682,11 @@ namespace jep
 			}
 
 			//	8 - -12 ---> 8 + 12
-			if (bn1.isNegative() == false && bn2.isNegative() == true)
+			if (!bn1.isNegative() && bn2.isNegative())
 				return addNumbers(bn1.absolute(), bn2.absolute());
 
 			//	-8 - -12 ---> (12 - 8)
-			if (bn1.isNegative() == true && bn2.isNegative() == true)
+			if (bn1.isNegative() && bn2.isNegative())
 				return subtractNumbers(bn2.absolute(), bn1.absolute());
 		}
 
@@ -932,15 +912,34 @@ namespace jep
 
 	bignum modulo(const bignum &bn1, const bignum &bn2)
 	{
-		if (bn1.isNegative() != bn2.isNegative())
-			return modulo(bn1.absolute(), bn2.absolute()) * -1;
+		if (bn1.isPositive() && bn2.isPositive())
+		{
+			bignum actual_quotient = bn1 / bn2;
+			bignum product_to_compare = actual_quotient.getRoundedDown(ONES_PLACE) * bn2;
+			return bn1 - product_to_compare;
+		}
 
-		bignum temp(bn1);
+		if (bn1.isPositive() && bn2.isNegative())
+		{
+			bignum actual_quotient = bn1 / bn2.absolute();
+			bignum product_to_compare = actual_quotient.getRoundedUp(ONES_PLACE) * bn2.absolute();
+			return bn1 - product_to_compare;
+		}
 
-		while (temp >= bn2)
-			temp -= bn2;
+		if (bn1.isNegative() && bn2.isPositive())
+		{
+			bignum actual_quotient = bn1.absolute() / bn2;
+			bignum product_to_compare = actual_quotient.getRoundedUp(ONES_PLACE) * bn2;
+			return bn1 + product_to_compare;
+		}
 
-		return temp;
+		if (bn1.isNegative() && bn2.isNegative())
+		{
+			bignum actual_quotient = bn1.absolute() / bn2.absolute();
+			bignum product_to_compare = actual_quotient.getRoundedDown(ONES_PLACE) * bn2.absolute();
+			return bn1 + product_to_compare;
+		}
+
 	}
 
 	void primeFactorization(const bignum &bn, vector<bignum> &factors)
@@ -1050,11 +1049,13 @@ namespace jep
 		throw error_handler(__FILE__, __LINE__, "An error has occurred");
 	}
 	
+	//if nth_root is a decimal, base_number cannot be negative
 	bignum root(const bignum &nth_root, const bignum &base_number, int decimal_places)
 	{	
 		if (nth_root.getBase() != base_number.getBase())
 			return root(nth_root, base_number.getConverted(nth_root.getBase()), decimal_places);
 
+		//TODO: verify that the 2.5th root of -2 is irrational, 
 		if (base_number.isNegative())
 		{
 			if (nth_root % 2 == 0)
@@ -1122,11 +1123,14 @@ namespace jep
 		}
 	}
 
+	bignum logarithm(const bignum &base_value, const bignum &resultant)
+	{
+		bignum temp;
+		return temp;
+	}
+
 	bignum exponent(const bignum &base_value, const bignum &power)
 	{
-		if (power.isZero())
-			return bignum(bignum(1), base_value.getBase());
-
 		if (base_value.getBase() != power.getBase())
 			return exponent(base_value, power.getConverted(power.getBase()));
 
@@ -1134,8 +1138,27 @@ namespace jep
 		one.setBase(base_value.getBase());
 		one.setPositive();
 
+		if (power.isZero())
+			return one;
+
+		//if (power.getDecimalCount() > 0)
+			//throw error_handler(__FILE__, __LINE__, "Cannot use decimals as exponential powers");	
+
 		if (power.getDecimalCount() > 0)
-			throw error_handler(__FILE__, __LINE__, "Cannot use decimals as exponential powers");		
+		{
+			bignum modified_power(power);
+			modified_power.leftShift(power.getDecimalCount());
+			bignum divisor(1);
+			divisor.setBase(power.getBase());
+			divisor.leftShift(power.getDecimalCount());
+
+			bignum gcf(greatestCommonFactor(modified_power, divisor));
+			modified_power /= gcf;
+			divisor /= gcf;
+
+			bignum divisor_root_of_base = jep::root(divisor, base_value, DEFAULT_EXPONENT_DECIMAL_PRECISION);
+			return exponent(divisor_root_of_base, modified_power).getRoundedAllDigits(ONES_PLACE - DEFAULT_EXPONENT_DECIMAL_PRECISION);
+		}
 
 		bignum counter = power.absolute();
 		bignum temp(base_value);
@@ -1341,6 +1364,12 @@ namespace jep
 
 	void bignum::convertBase(int n)
 	{
+		if (isZero())
+		{
+			base = n;
+			return;
+		}
+
 		bool original_negative = negative;
 
 		bignum toAdd;
@@ -1371,9 +1400,10 @@ namespace jep
 				converted_ten.convertBaseSimple(n);
 				bignum converted_nth(original_nth);
 				converted_nth.convertBaseSimple(n);
-
+				
 				//add X * 10^n to the solution
-				bignum toAdd = converted_digit * exponent(converted_ten, converted_nth);
+				bignum multiplier(exponent(converted_ten, converted_nth));
+				bignum toAdd = converted_digit * multiplier;
 
 				temp += toAdd;
 			}
@@ -1606,7 +1636,7 @@ namespace jep
 				increment.setBase(base);
 				increment.setDigit(i, 1);
 
-				*this += increment;
+				isNegative() ? *this -= increment : *this += increment;
 			}
 		}
 
@@ -1625,13 +1655,23 @@ namespace jep
 		if (index < 1 || index > MAXDIGITS)
 			throw error_handler(__FILE__, __LINE__, "program attempted to round outside the limits of the bignum");
 
+		//checks to see if number is already rounded without using modulo to prevent stack overflow
+		for (int i = 0; i < index; i++)
+		{
+			if (digits[i] != 0)
+				break;
+
+			else if (i == index - 1)
+				return;
+		}
+
 		if (digits[index - 1] >= (base / 2))
 		{
 			bignum increment;
 			increment.setBase(base);
 			increment.setDigit(index, 1);
 
-			*this += increment;
+			isNegative() ? *this -= increment : *this += increment;
 		}
 
 		for (int i = 0; i < index; i++)
@@ -1642,8 +1682,31 @@ namespace jep
 
 	void bignum::roundDownToIndex(int index)
 	{
+		//first checks to see if the number is already rounded
+		bignum round_test;
+		round_test.setBase(base);
+		round_test.setDigit(index, 1);
+
+		//checks to see if number is already rounded without using modulo to prevent stack overflow
+		for (int i = 0; i < index; i++)
+		{
+			if (digits[i] != 0)
+				break;
+
+			else if (i == index - 1)
+				return;
+		}
+		
 		for (int i = 0; i < index; i++)
 			setDigit(i, 0);
+
+		if (isNegative())
+		{
+			bignum decrement;
+			decrement.setDigit(index, 1);
+			decrement.setBase(base);
+			*this -= decrement;
+		}
 
 		updateDigits();
 	}
@@ -1655,16 +1718,26 @@ namespace jep
 		round_test.setBase(base);
 		round_test.setDigit(index, 1);
 
-		if (*this % round_test == 0)
-			return;
+		//checks to see if number is already rounded without using modulo to prevent stack overflow
+		for (int i = 0; i < index; i++)
+		{
+			if (digits[i] != 0)
+				break;
 
-		roundDownToIndex(index);
+			else if (i == index - 1)
+				return;
+		}
 
-		bignum increment;
-		increment.setBase(base);
-		increment.setDigit(index, 1);
+		for (int i = 0; i < index; i++)
+			setDigit(i, 0);
 
-		*this += increment;
+		if (isPositive())
+		{
+			bignum increment;
+			increment.setDigit(index, 1);
+			increment.setBase(base);
+			*this += increment;
+		}
 
 		updateDigits();
 	}
@@ -1762,7 +1835,7 @@ namespace jep
 
 		difference += increment;
 
-		while (temp >= difference && temp.isNegative() == false)
+		while (temp >= difference && !temp.isNegative())
 			temp -= difference;
 
 		return (bn1 > bn2 ? bn2 + temp : bn1 + temp);

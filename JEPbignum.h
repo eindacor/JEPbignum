@@ -22,6 +22,7 @@ using std::numeric_limits;
 #define MAXDIGITS 1024
 #define ONES_PLACE 100
 #define DEFAULT_FLOAT_PRECISION 10
+#define DEFAULT_EXPONENT_DECIMAL_PRECISION 20
 
 namespace jep
 {
@@ -40,8 +41,8 @@ namespace jep
 	bignum combinations(const bignum &bn1, const bignum &bn2);
 	bignum exponent(const bignum &base_value, const bignum &power);
 
-	//TOADD
-	//bignum logarithm(const bignum &bn1, const bignum &bn2);
+	//TODO 
+	bignum logarithm(const bignum &base_value, const bignum &resultant);
 
 	bignum modulo(const bignum &bn1, const bignum &bn2);
 	void primeFactorization(const bignum &bn1, vector<bignum> &factors);
@@ -59,14 +60,15 @@ namespace jep
 		public:
     		bignum(vector<int> n, int offset, int set_base, bool is_negative);
 			bignum(vector<int> n, int set_base, bool is_negative);
-    		bignum();
+			bignum() { initializeBignum(); }
     		bignum(int n);
-			bignum(float f);
+			bignum(float f) : bignum(f, DEFAULT_FLOAT_PRECISION) {};
 			bignum(float f, int decimal_places);
-			bignum(double d);
+			bignum(double d) : bignum(d, DEFAULT_FLOAT_PRECISION) {};
 			bignum(double d, int decimal_places);
     		bignum(string s);
     		bignum(string s, int baseGiven);
+			bignum(const bignum &bn) { initializeBignum(); *this = bn; }
 			explicit bignum(const bignum &bn, int desired_base) { *this = bn.getConverted(desired_base); }
     		~bignum() {};    
     
@@ -86,6 +88,7 @@ namespace jep
 			bool isZero() const {return is_zero; }
 			bool isPrime() const;
 			bool isNegative() const { return negative; }
+			bool isPositive() const { return !negative; }
     		
     		void updateDigits();
     		void convertBase(int n);
@@ -137,6 +140,7 @@ namespace jep
 			bignum& operator = (const bignum& b);
     
     	private:
+			void initializeBignum();
 			bool isDivisibleByThree() const;
 			bool isDivisibleByFive() const;
 			bool isDivisibleBySeven() const;
