@@ -1010,16 +1010,25 @@ namespace jep
 		bignum lowest = bn1 < bn2 ? bn1 : bn2;
 		bignum highest = bn1 > bn2 ? bn1 : bn2;
 
+		int converted_lowest = (int)lowest;
+		int converted_highest = (int)highest;
+
 		if (highest % lowest == 0)
 			return lowest;
 
-		for (int i = 2; lowest > i; i++)
+		for (int i = converted_lowest; i > 1; i--)
 		{
-			if (lowest % i == 0 && highest % i == 0)
-				return bignum(bignum(i), bn1.getBase());
+			if (converted_lowest % i == 0 && converted_highest % i == 0)
+			{
+				bignum temp(i);
+				temp.convertBase(bn1.getBase());
+				return temp;
+			}
 		}
 
-		return bignum(bignum(1), bn1.getBase());
+		bignum one(1);
+		one.setBase(bn1.getBase());
+		return one;
 	}
 
 	bignum lowestCommonMultiple(const bignum &bn1, const bignum &bn2)
@@ -1058,11 +1067,18 @@ namespace jep
 		//TODO: verify that the 2.5th root of -2 is irrational, 
 		if (base_number.isNegative())
 		{
-			if (nth_root % 2 == 0)
+			if (nth_root.getDecimalCount() > 0 || nth_root % 2 == 0)
 				throw error_handler(__FILE__, __LINE__, "The program attempted to compute an irrational value");
 
 			else return root(nth_root, base_number.absolute(), decimal_places) * -1;
 		}	
+
+		if (nth_root.isNegative())
+		{
+			bignum one(1);
+			one.setBase(base_number.getBase());
+			return root(nth_root.absolute(), one / base_number, decimal_places);
+		}
 
 		if (base_number.isZero() || base_number == 1)
 			return base_number;
