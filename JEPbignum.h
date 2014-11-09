@@ -22,7 +22,8 @@ using std::numeric_limits;
 #define MAXDIGITS 1024
 #define ONES_PLACE 100
 #define DEFAULT_FLOAT_PRECISION 10
-#define DEFAULT_EXPONENT_DECIMAL_PRECISION 20
+#define EXPONENTIAL_ACCURACY_TOLERANCE 10
+#define ROOT_ACCURACY_TOLERANCE 10
 
 namespace jep
 {
@@ -40,6 +41,7 @@ namespace jep
 	bignum factorial(const bignum &bn);
 	bignum combinations(const bignum &bn1, const bignum &bn2);
 	bignum exponent(const bignum &base_value, const bignum &power);
+	bignum exponent(const bignum &base_value, const bignum &power, int precision);
 
 	//TODO 
 	bignum logarithm(const bignum &base_value, const bignum &resultant);
@@ -48,6 +50,7 @@ namespace jep
 	void primeFactorization(const bignum &bn1, vector<bignum> &factors);
 	bignum greatestCommonFactor(const bignum &bn1, const bignum &bn2);
 	bignum lowestCommonMultiple(const bignum &bn1, const bignum &bn2);
+	bignum root(const bignum &nth_root, const bignum &base);
 	bignum root(const bignum &nth_root, const bignum &base, int precision);
 	bignum fibonacci(const bignum &bn1);
 	bignum golden(const bignum &bn1);

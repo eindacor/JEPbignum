@@ -912,30 +912,28 @@ namespace jep
 
 	bignum modulo(const bignum &bn1, const bignum &bn2)
 	{
+		bignum actual_quotient = bn1.absolute() / bn2.absolute();
+
 		if (bn1.isPositive() && bn2.isPositive())
 		{
-			bignum actual_quotient = bn1 / bn2;
 			bignum product_to_compare = actual_quotient.getRoundedDown(ONES_PLACE) * bn2;
 			return bn1 - product_to_compare;
 		}
 
 		if (bn1.isPositive() && bn2.isNegative())
 		{
-			bignum actual_quotient = bn1 / bn2.absolute();
 			bignum product_to_compare = actual_quotient.getRoundedUp(ONES_PLACE) * bn2.absolute();
 			return bn1 - product_to_compare;
 		}
 
 		if (bn1.isNegative() && bn2.isPositive())
 		{
-			bignum actual_quotient = bn1.absolute() / bn2;
 			bignum product_to_compare = actual_quotient.getRoundedUp(ONES_PLACE) * bn2;
 			return bn1 + product_to_compare;
 		}
 
 		if (bn1.isNegative() && bn2.isNegative())
 		{
-			bignum actual_quotient = bn1.absolute() / bn2.absolute();
 			bignum product_to_compare = actual_quotient.getRoundedDown(ONES_PLACE) * bn2.absolute();
 			return bn1 + product_to_compare;
 		}
@@ -1058,7 +1056,11 @@ namespace jep
 		throw error_handler(__FILE__, __LINE__, "An error has occurred");
 	}
 	
-	//if nth_root is a decimal, base_number cannot be negative
+	bignum root(const bignum &nth_root, const bignum &base_number)
+	{
+		return root(nth_root, base_number, ROOT_ACCURACY_TOLERANCE);
+	}
+
 	bignum root(const bignum &nth_root, const bignum &base_number, int decimal_places)
 	{	
 		if (nth_root.getBase() != base_number.getBase())
@@ -1139,6 +1141,7 @@ namespace jep
 		}
 	}
 
+	//TODO
 	bignum logarithm(const bignum &base_value, const bignum &resultant)
 	{
 		bignum temp;
@@ -1146,6 +1149,11 @@ namespace jep
 	}
 
 	bignum exponent(const bignum &base_value, const bignum &power)
+	{
+		return exponent(base_value, power, EXPONENTIAL_ACCURACY_TOLERANCE);
+	}
+
+	bignum exponent(const bignum &base_value, const bignum &power, int precision)
 	{
 		if (base_value.getBase() != power.getBase())
 			return exponent(base_value, power.getConverted(power.getBase()));
@@ -1157,23 +1165,35 @@ namespace jep
 		if (power.isZero())
 			return one;
 
-		//if (power.getDecimalCount() > 0)
-			//throw error_handler(__FILE__, __LINE__, "Cannot use decimals as exponential powers");	
+		//if the power is negative, return 1/solution
+		if (power.isNegative())
+			return one / exponent(base_value, power.absolute());
 
 		if (power.getDecimalCount() > 0)
 		{
-			bignum modified_power(power);
-			modified_power.leftShift(power.getDecimalCount());
-			bignum divisor(1);
-			divisor.setBase(power.getBase());
-			divisor.leftShift(power.getDecimalCount());
+			if (power < 1)
+			{
+				bignum modified_power(power);
+				modified_power.leftShift(power.getDecimalCount());
+				bignum divisor(1);
+				divisor.setBase(power.getBase());
+				divisor.leftShift(power.getDecimalCount());
 
-			bignum gcf(greatestCommonFactor(modified_power, divisor));
-			modified_power /= gcf;
-			divisor /= gcf;
+				bignum gcf(greatestCommonFactor(modified_power, divisor));
+				modified_power /= gcf;
+				divisor /= gcf;
 
-			bignum divisor_root_of_base = jep::root(divisor, base_value, DEFAULT_EXPONENT_DECIMAL_PRECISION);
-			return exponent(divisor_root_of_base, modified_power).getRoundedAllDigits(ONES_PLACE - DEFAULT_EXPONENT_DECIMAL_PRECISION);
+				bignum divisor_root_of_base = jep::root(divisor, base_value, precision);
+				return exponent(divisor_root_of_base, modified_power).getRoundedAllDigits(ONES_PLACE - precision);
+			}
+
+			else
+			{
+				bignum power_decimal = power % 1;
+				bignum power_int = power.getRoundedDown(ONES_PLACE);
+
+				return exponent(base_value, power_int, precision) * exponent(base_value, power_decimal, precision);
+			}
 		}
 
 		bignum counter = power.absolute();
@@ -1188,10 +1208,6 @@ namespace jep
 			temp *= base_value;
 			counter--;
 		}
-
-		//if the power is negative, return 1/solution
-		if (power.isNegative())
-			temp = divideNumbers(one, temp);
 
 		return temp;
 	}
