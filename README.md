@@ -14,6 +14,10 @@ Constructor|Description
 :-----------------------------------------------	|:------------------------
 `jep::bignum()`								|Creates a `jep::bignum` of base 10 with the value of 0.
 `jep::bignum(signed int n)`					|Creates a `jep::bignum` of base 10 with the value of `n`.
+`jep::bignum(float f)`					|Creates a `jep::bignum` of base 10 with the value of `f`.
+`jep::bignum(double d)`					|Creates a `jep::bignum` of base 10 with the value of `d`.
+`jep::bignum(float f, int decimal_places)`					|Creates a `jep::bignum` of base 10 with the value of `f`, with precision equal to `decimal_places`.
+`jep::bignum(double d, int decimal_places)`					|Creates a `jep::bignum` of base 10 with the value of `d`, with precision equal to `decimal_places`.
 `jep::bignum(string s)`						|Creates a `jep::bignum` of base 10 with the value of `s`.
 `jep::bignum(string s, int b)`					|Creates a `jep::bignum` of base `b` with the value of `s`.
 `jep::bignum(std::vector<int> n, int offset, int set_base, bool is_negative)`			|Creates a `jep::bignum` of base `set_base` from a `std::vector<int>`. The first element of the vector will be set as the right-most digit of the `jep::bignum`, unless an offset is passed. Passing `true` as the `is_negative` value will make the `jep::bignum` negative.
@@ -32,6 +36,11 @@ Function|Description
 `jep::factorial(jep::bignum bn)`							|Returns the factorial of `bn` as a `jep::bignum`.
 `jep::combinations(jep::bignum bn1, jep::bignum bn2)`			|Returns number of possible combinations when drawing `bn2` instances out of `bn1` instances total as a `jep::bignum`.
 `jep::exponent(jep::bignum bn1, jep::bignum bn2)`				|Returns `bn1` to the power of `bn2` as a `jep::bignum`.
+`jep::modulo(jep::bignum bn1, jep::bignum bn2)`				|Returns `bn1` modulo `bn2` as a `jep::bignum`.
+`primeFactorization(jep::bignum bn1, std::vector<jep::bignum> factors)`				|Clears vector of `jep::bignum`s `factors` and populates the container with the prime factors of `bn1`.
+`jep::greatestCommonFactor(jep::bignum bn1, jep::bignum bn2)`				|Returns the greatest common factor of `bn1` and `bn2` as a `jep::bignum`.
+`jep::lowestCommonMultiple(jep::bignum bn1, jep::bignum bn2)`				|Returns the lowest common multiple of `bn1` and `bn2` as a `jep::bignum`.
+`jep::average(std::vector<jep::bignum> values)`				|Returns the average of all members of `values` as a `jep::bignum`.
 
 
 
@@ -67,6 +76,7 @@ Operators work with data types `jep::bignum`, `int`, `float`, `double`, and `std
 * `*=`
 * `/`
 * `/=`
+* `%`
 * `<`
 * `<=`
 * `>`
@@ -92,7 +102,6 @@ Function|Description
 `jep::golden(int n)`									|Returns the golden ratio as a `jep::bignum`, based on fibonnaci numbers `n` and `n-1`.
 `jep::randomNumberAddPrecision(jep::bignum bn1, jep::bignum bn2, int add_precision)`	|Returns a random number with the range of `bn1` to `bn2`, with an added resolution of `add_precision` decimal places, as a `jep::bignum`.
 `jep::randomNumberForcePrecision(jep::bignum bn1, jep::bignum bn2, int force_precision)`	|Returns a random number with the range of `bn1` to `bn2`, with a forced resolution of `force_precision`.
-`jep::average(vector<jep::bignum> numbers_passed)`		|Returns the average value of all values passed as a `jep::bignum`.
 
 
 
