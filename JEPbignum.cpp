@@ -98,10 +98,10 @@ namespace jep
 	{
 		initializeBignum();
 
-		vector<int> exponent;
-		vector<int> mantissa;
+		vector<int> exponent, mantissa;
 		bool sign = false;
 
+		//based on 32-bit system architecture
 		static int float_bits = 32, mantissa_delim = 23, exponent_delim = 31, exponent_bias = 127;
 
 		union float_converter
@@ -115,6 +115,7 @@ namespace jep
 
 		unsigned int compare = 1;
 
+		//iterate through bits of the stored value, push bit value to appropriate container
 		for (int i = 0; i < float_bits; i++)
 		{
 			if (i < mantissa_delim)
@@ -128,22 +129,27 @@ namespace jep
 			converter.u = converter.u >> 1;
 		}
 
+		//reversed to compensate for endianess
 		std::reverse(mantissa.begin(), mantissa.end());
 		std::reverse(exponent.begin(), exponent.end());
 
+		//create the mantissa as a binary bignum
 		bignum big_mantissa(mantissa, 2, false);
 		big_mantissa.rightShift(mantissa_delim);
 
+		//create the mantissa as a binary bignum, adjust based on exponent bias
 		bignum big_exponent(exponent, 2, false);
 		bignum big_exponent_bias(exponent_bias);
 		big_exponent_bias.convertBase(2);
 		big_exponent -= big_exponent_bias;
 		
-		//generates multiplier of the floating format
+		//generates multiplier of the floating format based on mantissa and exponent
 		bignum mantissa_multiplier(10);
 		mantissa_multiplier.setBase(2);
 		mantissa_multiplier = jep::exponent(mantissa_multiplier, big_exponent);
 		mantissa_multiplier.convertBase(2);
+		
+		//increment, since system architecture does not incorporate the 1 by default
 		big_mantissa += 1;
 
 		bignum temp = big_mantissa * mantissa_multiplier;
@@ -152,9 +158,7 @@ namespace jep
 			temp.setNegative();
 
 		temp.convertBase(10);
-
 		*this = temp;
-
 		roundToIndex(ONES_PLACE - decimal_places);
 	}
 
@@ -164,8 +168,11 @@ namespace jep
 		base = set_base;
 
 		int count = (ONES_PLACE - 1) + n.size();
-		for (vector<int>::iterator i = n.begin(); i != n.end() && count < MAXDIGITS && count >= 0; i++)
+		for (vector<int>::iterator i = n.begin(); i != n.end()  && count >= 0; i++)
 		{
+			if (count >= MAXDIGITS)
+				throw error_handler(__FILE__, __LINE__, "The value being calculated is too large for the settings provided");
+
 			if (*i >= base)
 				throw error_handler(__FILE__, __LINE__, "One of the values passed is beyond the given base");
 
@@ -184,8 +191,11 @@ namespace jep
 
 		int count = (ONES_PLACE - 1) + n.size();
 		count += offset;
-		for (vector<int>::iterator i = n.begin(); i != n.end() && count < MAXDIGITS && count >= 0; i++)
+		for (vector<int>::iterator i = n.begin(); i != n.end() && count >= 0; i++)
 		{
+			if (count >= MAXDIGITS)
+				throw error_handler(__FILE__, __LINE__, "The value being calculated is too large for the settings provided");
+
 			if (*i >= base)
 				throw error_handler(__FILE__, __LINE__, "One of the values passed is beyond the given base");
 
@@ -568,8 +578,11 @@ namespace jep
 		bignum sum;
 		int base = bn1.getBase();
 
-		for (int i = (ONES_PLACE - decimal); i < digits + 1 && i < MAXDIGITS; i++)
+		for (int i = (ONES_PLACE - decimal); i < digits + 1 ; i++)
 		{
+			if (i >= MAXDIGITS)
+				throw error_handler(__FILE__, __LINE__, "The value being calculated is too large for the settings provided");
+
 			int tempNumber = bn1.getDigit(i) + bn2.getDigit(i);
 
 			tempNumber += carry;
@@ -689,8 +702,11 @@ namespace jep
 		decimal = (bn1.getDecimalCount() > bn2.getDecimalCount() ? bn1.getDecimalCount() : bn2.getDecimalCount());
 		digits = (bn1.getDigitCount() > bn2.getDigitCount() ? bn1.getDigitCount() + 1 : bn2.getDigitCount() + 1);
 
-		for (int i = (ONES_PLACE - decimal); i < digits + 1 && i < MAXDIGITS && i >= 0; i++)
+		for (int i = (ONES_PLACE - decimal); i < digits + 1 && i >= 0; i++)
 		{
+			if (i >= MAXDIGITS)
+				throw error_handler(__FILE__, __LINE__, "The value being calculated is too large for the settings provided");
+
 			int tempNumber = bn1.getDigit(i) - bn2.getDigit(i);
 
 			tempNumber -= carry;
@@ -752,8 +768,11 @@ namespace jep
 			int toMultiply = (ONES_PLACE - bn2.getDecimalCount()) + i;
 
 			//verify function isn't checking beyond bounds of the stored array
-			if (toMultiply < MAXDIGITS && toMultiply >= 0)
+			if (toMultiply >= 0)
 			{
+				if (toMultiply >= MAXDIGITS)
+					throw error_handler(__FILE__, __LINE__, "The value being calculated is too large for the settings provided");
+
 				bignum toAdd = multiplyNumbersSimple(bn1.absolute(), bn2.getDigit(toMultiply));
 
 				toAdd.leftShift(i);
@@ -820,8 +839,11 @@ namespace jep
 		bignum number_to_subtract;
 		number_to_subtract.setBase(baseSet);
 
-		while (end != true && index < MAXDIGITS && index >= 0)
+		while (!end && index >= 0)
 		{
+			if (index >= MAXDIGITS)
+				throw error_handler(__FILE__, __LINE__, "The value being calculated is too large for the settings provided");
+
 			if (remainder == false && index < ONES_PLACE - bn1.getDecimalCount())
 				end = true;
 
@@ -1224,8 +1246,13 @@ namespace jep
 
 		decimal = (decimalCount < bn.getDecimalCount() ? bn.getDecimalCount() : decimalCount);
 
-		for (int i = (ONES_PLACE - decimal); i < highestDigits && i < MAXDIGITS; i++)
+		for (int i = (ONES_PLACE - decimal); i < highestDigits; i++)
+		{
+			if (i >= MAXDIGITS)
+				throw error_handler(__FILE__, __LINE__, "The value being calculated is too large for the settings provided");
+
 			digits[i] = bn.getDigit(i);
+		}
 
 		negative = bn.isNegative();
 
@@ -1382,7 +1409,10 @@ namespace jep
 			{
 				int index(left_most - i);
 
-				if (index >= MAXDIGITS || index < 0)
+				if (index >= MAXDIGITS)
+					throw error_handler(__FILE__, __LINE__, "The value being calculated is too large for the settings provided");
+
+				if (index < 0)
 					break;
 
 				//each digit of the number is evaluated evaluated X * 10^n format
@@ -1520,8 +1550,13 @@ namespace jep
 	{
 		for (int i = 0; i < places; i++)
 		{
-			for (int c = 0; c < digitRange && digitCount - c < MAXDIGITS; c++)
+			for (int c = 0; c < digitRange; c++)
+			{
+				if (digitCount - c >= MAXDIGITS)
+					throw error_handler(__FILE__, __LINE__, "The value being calculated is too large for the settings provided");
+
 				digits[digitCount - c] = digits[left_most - c];
+			}
 
 			digits[right_most] = 0;
 			updateDigits();
@@ -1622,7 +1657,10 @@ namespace jep
 		if (index == 0)
 			return;
 
-		if (index < 1 || index > MAXDIGITS)
+		if (index > MAXDIGITS)
+			throw error_handler(__FILE__, __LINE__, "The target index is higher than the maximum digit count");
+
+		if (index < 1)
 			return;
 
 		for (int i = 1; i <= index; i++)
@@ -1649,7 +1687,10 @@ namespace jep
 		if (index == 0)
 			return;
 
-		if (index < 1 || index > MAXDIGITS)
+		if (index > MAXDIGITS)
+			throw error_handler(__FILE__, __LINE__, "The target index is higher than the maximum digit count");
+
+		if (index < 1)
 			return;
 
 		//checks to see if number is already rounded without using modulo to prevent stack overflow

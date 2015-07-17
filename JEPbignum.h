@@ -19,8 +19,8 @@ using std::list;
 using std::string;
 using std::numeric_limits;
 
-#define MAXDIGITS 124
-#define ONES_PLACE 24
+#define MAXDIGITS 512
+#define ONES_PLACE 64
 #define DEFAULT_FLOAT_PRECISION 10
 #define EXPONENTIAL_ACCURACY_TOLERANCE 10
 #define ROOT_ACCURACY_TOLERANCE 10
@@ -29,33 +29,39 @@ namespace jep
 {
 	class bignum;
 
+	//RELATIONAL OPERATORS
 	bool lessThan(const bignum &bn1, const bignum &bn2);
 	bool greaterThan(const bignum &bn1, const bignum &bn2);
 	bool equals(const bignum &bn1, const bignum &bn2);
+
+	//BASIC ARITHMETIC
 	bignum addNumbers(const bignum &bn1, const bignum &bn2);
 	bignum subtractNumbers(const bignum &bn1, const bignum &bn2);
 	bignum multiplyNumbersSimple(const bignum &bn1, int n);
 	bignum multiplyNumbers(const bignum &bn1, const bignum &bn2);
 	bignum divideNumbersSimple(const bignum &bn1, const bignum &bn2, bool &remainder);
 	bignum divideNumbers(const bignum &bn1, const bignum &bn2);
+	bignum modulo(const bignum &bn1, const bignum &bn2);
+
+	//ADVANCED CALCULATIONS
 	bignum factorial(const bignum &bn);
 	bignum combinations(const bignum &bn1, const bignum &bn2);
 	bignum exponent(const bignum &base_value, const bignum &power, int precision = EXPONENTIAL_ACCURACY_TOLERANCE);
+	bignum root(const bignum &nth_root, const bignum &base);
+	bignum root(const bignum &nth_root, const bignum &base, int precision);
 
-	//TODO 
-	bignum logarithm(const bignum &base_value, const bignum &resultant);
-
-	bignum modulo(const bignum &bn1, const bignum &bn2);
+	//MISC FUNCTIONS
+	bignum average(vector<bignum> numbers_passed);
 	void primeFactorization(const bignum &bn1, vector<bignum> &factors);
 	bignum greatestCommonFactor(const bignum &bn1, const bignum &bn2);
 	bignum lowestCommonMultiple(const bignum &bn1, const bignum &bn2);
-	bignum root(const bignum &nth_root, const bignum &base);
-	bignum root(const bignum &nth_root, const bignum &base, int precision);
 	bignum fibonacci(const bignum &bn1);
 	bignum golden(const bignum &bn1);
 	bignum randomNumberForcePrecision(const bignum &bn1, const bignum &bn2, int forceprecision);
 	bignum randomNumberAddPrecision(const bignum &bn1, const bignum &bn2, int addprecision);
-	bignum average(vector<bignum> numbers_passed);
+	
+	//TODO 
+	bignum logarithm(const bignum &base_value, const bignum &resultant);
 
     class bignum
     {

@@ -32,6 +32,9 @@ namespace jep
 		case '%': symbol_type = MODULO;
 			break;
 
+		case 'r': symbol_type = ROOT;
+			break;
+
 		case 'c': symbol_type = ITERATION;
 			break;
 
@@ -242,7 +245,7 @@ namespace jep
 				list<calc_ptr>::iterator i1 = std::prev(i, 2);
 
 				//  3 symbols in a row
-				if ((*i1)->getItemType() == SYMBOL && (*i2)->getItemType() == SYMBOL && (*i3)->getItemType() == NUMBER && (*i3)->getStoredNumber().isNegative() == true)
+				if ((*i1)->getItemType() == SYMBOL && (*i2)->getItemType() == SYMBOL && (*i3)->getItemType() == NUMBER && (*i3)->getStoredNumber().isNegative())
 				{
 					RETURN_FALSE;
 				}
@@ -265,7 +268,7 @@ namespace jep
 					if ((*i)->getOpen())
 					{
 						//  ()
-						if ((*after)->getItemType() == PAREN && (*after)->getOpen() == false)
+						if ((*after)->getItemType() == PAREN && !(*after)->getOpen())
 						{
 							RETURN_FALSE;
 						}
@@ -298,7 +301,7 @@ namespace jep
 					}
 
 					//  -4!
-					if ((*i)->getStoredNumber().isNegative() == true && (*after)->getItemType() == SYMBOL && (*after)->getsymbol_type() == FACTORIAL)
+					if ((*i)->getStoredNumber().isNegative() && (*after)->getItemType() == SYMBOL && (*after)->getsymbol_type() == FACTORIAL)
 					{
 						RETURN_FALSE;
 					}
@@ -362,7 +365,7 @@ namespace jep
 					if ((*i)->getOpen())
 					{
 						//  ()
-						if ((*after)->getItemType() == PAREN && (*after)->getOpen() == false)
+						if ((*after)->getItemType() == PAREN && !(*after)->getOpen())
 						{
 							RETURN_FALSE;
 						}
@@ -400,7 +403,7 @@ namespace jep
 					}
 
 					//  +)
-					if ((*i)->getsymbol_type() != FACTORIAL && (*after)->getItemType() == PAREN && (*after)->getOpen() == false)
+					if ((*i)->getsymbol_type() != FACTORIAL && (*after)->getItemType() == PAREN && !(*after)->getOpen())
 					{
 						RETURN_FALSE;
 					}
@@ -415,7 +418,7 @@ namespace jep
 					}
 
 					// -4!
-					if ((*i)->getStoredNumber().isNegative() == true && (*after)->getItemType() == SYMBOL && (*after)->getsymbol_type() == FACTORIAL)
+					if ((*i)->getStoredNumber().isNegative() && (*after)->getItemType() == SYMBOL && (*after)->getsymbol_type() == FACTORIAL)
 					{
 						RETURN_FALSE;
 					}
@@ -475,7 +478,7 @@ namespace jep
 
 		if (itemList.size() < 2)
 		{
-			if (checkValid(itemList) == false)
+			if (!checkValid(itemList))
 			{
 				RETURN_FALSE;
 			}
@@ -489,7 +492,7 @@ namespace jep
 		{
 			//PRINTLIST(itemList);
 
-			if (checkValid(itemList) == false)
+			if (!checkValid(itemList))
 			{
 				RETURN_FALSE;
 			}
@@ -517,7 +520,7 @@ namespace jep
 				}
 
 				//IF A PROBLEM SAYS "(-N", CONVERT THE N TO NEGATIVE AND ELIMINATE THE SYMBOL
-				if ((*i1)->getItemType() == PAREN && (*i1)->getOpen() == true && (*i2)->getItemType() == SYMBOL && (*i3)->getItemType() == NUMBER)
+				if ((*i1)->getItemType() == PAREN && (*i1)->getOpen() && (*i2)->getItemType() == SYMBOL && (*i3)->getItemType() == NUMBER)
 				{
 					itemList.erase(i2);
 					bignum temp = (*i3)->getStoredNumber();
@@ -539,7 +542,7 @@ namespace jep
 					//if the first item is a number and the next item is an open parenthesis
 				case NUMBER:
 					// "N(" becomes "N*("
-					if ((*after)->getItemType() == PAREN && (*after)->getOpen() == true)
+					if ((*after)->getItemType() == PAREN && (*after)->getOpen())
 					{
 						addCharToList(itemList, after, '*');
 						i = itemList.begin();
@@ -562,7 +565,7 @@ namespace jep
 				{
 				case PAREN:
 					// ")N" becomes ")*N"
-					if ((*i)->getOpen() == false && (*after)->getItemType() == NUMBER)
+					if (!(*i)->getOpen() && (*after)->getItemType() == NUMBER)
 					{
 						addCharToList(itemList, after, '*');
 						i = itemList.begin();
@@ -570,7 +573,7 @@ namespace jep
 					}
 
 					// ")(" becomes ")*("
-					if ((*i)->getOpen() == false && (*after)->getItemType() == PAREN && (*after)->getOpen() == true)
+					if (!(*i)->getOpen() && (*after)->getItemType() == PAREN && (*after)->getOpen())
 					{
 						addCharToList(itemList, after, '*');
 						i = itemList.begin();
@@ -580,7 +583,7 @@ namespace jep
 
 				case SYMBOL:
 					// "!(" becomes "!*("
-					if ((*i)->getsymbol_type() == FACTORIAL && (*after)->getItemType() == PAREN && (*after)->getOpen() == true)
+					if ((*i)->getsymbol_type() == FACTORIAL && (*after)->getItemType() == PAREN && (*after)->getOpen())
 					{
 						addCharToList(itemList, after, '*');
 						i = itemList.begin();
@@ -590,7 +593,7 @@ namespace jep
 
 				case NUMBER:
 					// "N(" becomes "N*("
-					if ((*after)->getItemType() == PAREN && (*after)->getOpen() == true)
+					if ((*after)->getItemType() == PAREN && (*after)->getOpen())
 					{
 						addCharToList(itemList, after, '*');
 						i = itemList.begin();
@@ -606,7 +609,7 @@ namespace jep
 
 		} while (i != itemList.end());
 
-		if (checkValid(itemList) == false)
+		if (!checkValid(itemList))
 		{
 			RETURN_FALSE;
 		}
@@ -663,6 +666,10 @@ namespace jep
 
 		case MODULO:
 			temp = modulo((*i1)->getStoredNumber(), (*i3)->getStoredNumber());
+			break;
+
+		case ROOT:
+			temp = root((*i1)->getStoredNumber(), (*i3)->getStoredNumber());
 			break;
 
 		default: cout << __FILE__ << ", line " << __LINE__ << ": An error has occurred.";
@@ -750,11 +757,11 @@ namespace jep
 						}
 					}//if symbol matches target symbol
 
-					if (listChanged == true)
+					if (listChanged)
 						break;
 				}//for loop checking list for target symbol
 
-				if (listChanged == true)
+				if (listChanged)
 					break;
 			}//for loop cycling through the pfemdas order
 		}//while loop to simplify until a final number exists
@@ -762,7 +769,7 @@ namespace jep
 
 	bool simplify(list<calc_ptr> &itemList)
 	{
-		if (checkValid(itemList) == false)
+		if (!checkValid(itemList))
 		{
 			RETURN_FALSE;
 		}
@@ -775,7 +782,7 @@ namespace jep
 		{
 			if ((*pCount)->getItemType() == PAREN)
 			{
-				if ((*pCount)->getOpen() == true)
+				if ((*pCount)->getOpen())
 				{
 					parenCount++;
 					if (parenCount > parenHigh)
@@ -807,7 +814,7 @@ namespace jep
 			{
 				if ((*i)->getItemType() == PAREN && (*i)->getParenID() == parenHigh)
 				{
-					if ((*i)->getOpen() == true)
+					if ((*i)->getOpen())
 					{
 						rangeToReplace_start = i;
 						add = true;
@@ -827,10 +834,8 @@ namespace jep
 					}
 				}
 
-				else if (add == true)
-				{
+				else if (add)
 					replace.insert(replace.end(), (*i));
-				}
 
 				++i;
 
@@ -876,8 +881,10 @@ namespace jep
 		bignum temp;
 
 		//populate list
-		if (generateProblem(entered, itemList, user, previous) == false)
+		if (!generateProblem(entered, itemList, user, previous))
+		{
 			RETURN_ERROR;
+		}
 
 		//if nothing has been entered, return previous
 		if (itemList.size() == 0)
@@ -934,7 +941,7 @@ namespace jep
 		}
 
 		//initial swap
-		if (swapItems(itemList) == false)
+		if (!swapItems(itemList))
 		{
 			RETURN_ERROR;
 		}
@@ -944,7 +951,7 @@ namespace jep
 		{
 			simplify(itemList);
 
-			if (swapItems(itemList) == false)
+			if (!swapItems(itemList))
 			{
 				RETURN_ERROR;
 			}
@@ -1020,21 +1027,14 @@ namespace jep
 		switch (c)
 		{
 		case '+': return ADD;
-
 		case '-': return SUBTRACT;
-
 		case '*': return MULTIPLY;
-
 		case '/': return DIVIDE;
-
 		case '^': return EXPONENT;
-
 		case '!': return FACTORIAL;
-
 		case '%': return MODULO;
-
+		case 'r': return ROOT;
 		case 'c': return ITERATION;
-
 		default: return ERROR;
 		}
 	}
@@ -1068,7 +1068,7 @@ namespace jep
 		return (checkSymbol(c) != ERROR);
 	}
 
-	bool generateProblem(string &c, list <calc_ptr> &itemList, settings &user, bignum previous)
+	bool generateProblem(string &c, list <calc_ptr> &itemList, settings &user, const bignum &previous)
 	{
 		vector<int> numberVector;
 
@@ -1081,7 +1081,7 @@ namespace jep
 
 		for (int i = 0; i < counter; i++)
 		{
-			//if "answer" has been entered, add previous number and advance the counter
+			//if "ans" has been entered, add previous number and advance the counter
 			if (checkWord(c, i, "ans"))
 			{
 				if (primer.getNumbers()>0)
@@ -1105,9 +1105,9 @@ namespace jep
 				break;
 
 			//if it isn't a space, number, symbol, end marker, or decimal point, return error
-			if (isSpace(c[i]) == false &&
-				isNumber(c[i], user) == false &&
-				isSymbol(c[i]) == false &&
+			if (!isSpace(c[i]) &&
+				!isNumber(c[i], user) &&
+				!isSymbol(c[i]) &&
 				c[i] != ',' &&
 				c[i] != '(' &&
 				c[i] != ')' &&
@@ -1118,9 +1118,9 @@ namespace jep
 
 			if (c[i] == ',')
 			{
-				if (primer.getComma() == false)
+				if (!primer.getComma())
 				{
-					if (primer.getDecimal() == true || primer.getNumbers() == 0 || primer.getNumbers() > 3)
+					if (primer.getDecimal() || primer.getNumbers() == 0 || primer.getNumbers() > 3)
 					{
 						RETURN_FALSE;
 					}
@@ -1137,7 +1137,7 @@ namespace jep
 			}
 
 			//if it's a space
-			else if (isSpace(c[i]) == true)
+			else if (isSpace(c[i]))
 			{
 				//if it's preceeded by a number, finish the number and add to the problem
 				if (isNumber(c[i - 1], user))
@@ -1155,10 +1155,10 @@ namespace jep
 				numberVector.push_back(checkNumber(c[i]));
 				primer.incrementNumbers();
 
-				if (primer.getComma() == true)
+				if (primer.getComma())
 					primer.incrementCommaNumbers();
 
-				if (primer.getDecimal() == true)
+				if (primer.getDecimal())
 					primer.incrementDecimalCount();
 			}
 
@@ -1198,19 +1198,19 @@ namespace jep
 			else if (c[i] == '.')
 			{
 				//if there's already been a decimal point, return error
-				if (primer.getDecimal() == true)
+				if (primer.getDecimal())
 				{
 					RETURN_FALSE;
 				}
 
 				//if there isn't a number after, return error
-				else if (isNumber(c[i + 1], user) == false)
+				else if (!isNumber(c[i + 1], user))
 				{
 					RETURN_FALSE;
 				}
 
 				//if the comma segment is incomplete
-				else if (primer.getComma() == true && primer.getCommaNumbers() != 3)
+				else if (primer.getComma() && primer.getCommaNumbers() != 3)
 				{
 					RETURN_FALSE;
 				}

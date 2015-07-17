@@ -16,7 +16,7 @@ using std::list;
 
 namespace jep
 {
-	enum STYPE { FACTORIAL = 0, ITERATION, EXPONENT, MULTIPLY, DIVIDE, ADD, SUBTRACT, MODULO, ERROR };
+	enum STYPE { FACTORIAL = 0, ITERATION, EXPONENT, MULTIPLY, DIVIDE, ADD, SUBTRACT, MODULO, ROOT, ERROR };
 	enum ITYPE { NONE = 0, NUMBER, SYMBOL, PAREN };
 
 	class calc_ptr;
@@ -41,7 +41,7 @@ namespace jep
 	int checkNumber(char const &c);
 	bool isNumber(char const &c, settings &user);
 	bool isSymbol(char &c);
-	bool generateProblem(string &c, list <calc_ptr> &itemList, settings &user, bignum previous);
+	bool generateProblem(string &c, list <calc_ptr> &itemList, settings &user, const bignum &previous);
 
 	class solution
 	{
