@@ -40,8 +40,7 @@ namespace jep
 	bignum divideNumbers(const bignum &bn1, const bignum &bn2);
 	bignum factorial(const bignum &bn);
 	bignum combinations(const bignum &bn1, const bignum &bn2);
-	bignum exponent(const bignum &base_value, const bignum &power);
-	bignum exponent(const bignum &base_value, const bignum &power, int precision);
+	bignum exponent(const bignum &base_value, const bignum &power, int precision = EXPONENTIAL_ACCURACY_TOLERANCE);
 
 	//TODO 
 	bignum logarithm(const bignum &base_value, const bignum &resultant);
@@ -142,7 +141,7 @@ namespace jep
 
 			void operator -- (int);
 			void operator ++ (int);
-			bignum& operator = (const bignum& b);
+			bignum& operator = (const bignum& bn);
     
     	private:
 			void initializeBignum();

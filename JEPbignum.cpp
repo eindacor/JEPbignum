@@ -813,7 +813,7 @@ namespace jep
 
 		//starting with the left-most digit, create a bignumber of that digit that matches the set base
 		bignum number_to_compare(bn1.getDigit(index));
-		number_to_compare.setBase(baseSet);
+		number_to_compare.convertBase(baseSet);
 
 		//ignore decimal places when comparing dividend to digits of the divisor
 		bignum nextNumber = divideNumbersSimple(number_to_compare, bn2.absolute().noDecimal(), remainder);
@@ -888,7 +888,9 @@ namespace jep
 
 	bignum modulo(const bignum &bn1, const bignum &bn2)
 	{
-		bignum actual_quotient = bn1.absolute() / bn2.absolute();
+		bignum bn1_abs = bn1.absolute();
+		bignum bn2_abs = bn2.absolute();
+		bignum actual_quotient = bn1_abs / bn2_abs;
 
 		if (bn1.isPositive() && bn2.isPositive())
 		{
@@ -1124,11 +1126,6 @@ namespace jep
 		return temp;
 	}
 
-	bignum exponent(const bignum &base_value, const bignum &power)
-	{
-		return exponent(base_value, power, EXPONENTIAL_ACCURACY_TOLERANCE);
-	}
-
 	bignum exponent(const bignum &base_value, const bignum &power, int precision)
 	{
 		if (base_value.getBase() != power.getBase())
@@ -1213,24 +1210,24 @@ namespace jep
 		return return_int;
 	}
 
-	bignum& bignum::operator = (const bignum& b)
+	bignum& bignum::operator = (const bignum& bn)
 	{
-		if (this == &b)
+		if (this == &bn)
 			return *this;
 
-		base = b.getBase();
+		base = bn.getBase();
 
 		int highestDigits = 0;
 		int decimal = 0;
 
-		highestDigits = (digitCount < b.getDigitCount() ? b.getDigitCount() : digitCount);
+		highestDigits = (digitCount < bn.getDigitCount() ? bn.getDigitCount() : digitCount);
 
-		decimal = (decimalCount < b.getDecimalCount() ? b.getDecimalCount() : decimalCount);
+		decimal = (decimalCount < bn.getDecimalCount() ? bn.getDecimalCount() : decimalCount);
 
 		for (int i = (ONES_PLACE - decimal); i < highestDigits && i < MAXDIGITS; i++)
-			digits[i] = b.getDigit(i);
+			digits[i] = bn.getDigit(i);
 
-		negative = b.isNegative();
+		negative = bn.isNegative();
 
 		updateDigits();
 
