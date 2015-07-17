@@ -164,11 +164,8 @@ namespace jep
 		base = set_base;
 
 		int count = (ONES_PLACE - 1) + n.size();
-		for (vector<int>::iterator i = n.begin(); i != n.end(); i++)
+		for (vector<int>::iterator i = n.begin(); i != n.end() && count < MAXDIGITS && count >= 0; i++)
 		{
-			if (count >= MAXDIGITS || count < 0)
-				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
-
 			if (*i >= base)
 				throw error_handler(__FILE__, __LINE__, "One of the values passed is beyond the given base");
 
@@ -187,11 +184,8 @@ namespace jep
 
 		int count = (ONES_PLACE - 1) + n.size();
 		count += offset;
-		for (vector<int>::iterator i = n.begin(); i != n.end(); i++)
+		for (vector<int>::iterator i = n.begin(); i != n.end() && count < MAXDIGITS && count >= 0; i++)
 		{
-			if (count >= MAXDIGITS || count < 0)
-				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
-
 			if (*i >= base)
 				throw error_handler(__FILE__, __LINE__, "One of the values passed is beyond the given base");
 
@@ -574,12 +568,8 @@ namespace jep
 		bignum sum;
 		int base = bn1.getBase();
 
-		for (int i = (ONES_PLACE - decimal); i < digits + 1; i++)
+		for (int i = (ONES_PLACE - decimal); i < digits + 1 && i < MAXDIGITS; i++)
 		{
-			//verify function isn't checking beyond bounds of the stored array
-			if (i >= MAXDIGITS || i < 0)
-				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
-
 			int tempNumber = bn1.getDigit(i) + bn2.getDigit(i);
 
 			tempNumber += carry;
@@ -699,12 +689,8 @@ namespace jep
 		decimal = (bn1.getDecimalCount() > bn2.getDecimalCount() ? bn1.getDecimalCount() : bn2.getDecimalCount());
 		digits = (bn1.getDigitCount() > bn2.getDigitCount() ? bn1.getDigitCount() + 1 : bn2.getDigitCount() + 1);
 
-		for (int i = (ONES_PLACE - decimal); i < digits + 1; i++)
+		for (int i = (ONES_PLACE - decimal); i < digits + 1 && i < MAXDIGITS && i >= 0; i++)
 		{
-			//verify function isn't checking beyond bounds of the stored array
-			if (i >= MAXDIGITS || i < 0)
-				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
-
 			int tempNumber = bn1.getDigit(i) - bn2.getDigit(i);
 
 			tempNumber -= carry;
@@ -766,17 +752,13 @@ namespace jep
 			int toMultiply = (ONES_PLACE - bn2.getDecimalCount()) + i;
 
 			//verify function isn't checking beyond bounds of the stored array
-			if (toMultiply >= MAXDIGITS || toMultiply < 0)
-				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
+			if (toMultiply < MAXDIGITS && toMultiply >= 0)
+			{
+				bignum toAdd = multiplyNumbersSimple(bn1.absolute(), bn2.getDigit(toMultiply));
 
-			bignum toAdd = multiplyNumbersSimple(bn1.absolute(), bn2.getDigit(toMultiply));
-
-			//verify toAdd would not overstep bounds
-			if (toAdd.getDigitCount() == MAXDIGITS && i > 0)
-				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
-
-			toAdd.leftShift(i);
-			temp += toAdd;
+				toAdd.leftShift(i);
+				temp += toAdd;
+			}
 		}
 
 		if (bn1.isNegative() != bn2.isNegative())
@@ -838,13 +820,10 @@ namespace jep
 		bignum number_to_subtract;
 		number_to_subtract.setBase(baseSet);
 
-		while (end != true)
+		while (end != true && index < MAXDIGITS && index >= 0)
 		{
 			if (remainder == false && index < ONES_PLACE - bn1.getDecimalCount())
 				end = true;
-
-			if (index >= MAXDIGITS || index < 0)
-				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
 			temp.setDigit(index, nextNumber.getDigit(ONES_PLACE));
 			index--;
@@ -853,9 +832,6 @@ namespace jep
 			number_to_subtract.updateDigits();
 			number_to_compare -= number_to_subtract;
 			number_to_compare.leftShift(1);
-
-			if (index >= MAXDIGITS)
-				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
 
 			if (index >= 0)
 			{
@@ -1251,13 +1227,8 @@ namespace jep
 
 		decimal = (decimalCount < b.getDecimalCount() ? b.getDecimalCount() : decimalCount);
 
-		for (int i = (ONES_PLACE - decimal); i < highestDigits; i++)
-		{
-			if (i >= MAXDIGITS)
-				throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
-
+		for (int i = (ONES_PLACE - decimal); i < highestDigits && i < MAXDIGITS; i++)
 			digits[i] = b.getDigit(i);
-		}
 
 		negative = b.isNegative();
 
@@ -1415,7 +1386,7 @@ namespace jep
 				int index(left_most - i);
 
 				if (index >= MAXDIGITS || index < 0)
-					throw error_handler(__FILE__, __LINE__, "void bignum::convertBase(int n): The program has attempted to calculate a value outside of its limits");
+					break;
 
 				//each digit of the number is evaluated evaluated X * 10^n format
 				bignum original_digit(getDigit(index));
@@ -1550,12 +1521,9 @@ namespace jep
 	//multiplies the number by 10 in its native base by literally shifting digit
 	void bignum::leftShift(int places)
 	{
-		if (digitCount >= MAXDIGITS - 1)
-			throw error_handler(__FILE__, __LINE__, "The program has attempted to calculate a value outside of its limits");
-
 		for (int i = 0; i < places; i++)
 		{
-			for (int c = 0; c < digitRange; c++)
+			for (int c = 0; c < digitRange && digitCount - c < MAXDIGITS; c++)
 				digits[digitCount - c] = digits[left_most - c];
 
 			digits[right_most] = 0;
@@ -1658,7 +1626,7 @@ namespace jep
 			return;
 
 		if (index < 1 || index > MAXDIGITS)
-			throw error_handler(__FILE__, __LINE__, "program attempted to round outside the limits of the bignum");
+			return;
 
 		for (int i = 1; i <= index; i++)
 		{
@@ -1685,7 +1653,7 @@ namespace jep
 			return;
 
 		if (index < 1 || index > MAXDIGITS)
-			throw error_handler(__FILE__, __LINE__, "program attempted to round outside the limits of the bignum");
+			return;
 
 		//checks to see if number is already rounded without using modulo to prevent stack overflow
 		for (int i = 0; i < index; i++)
@@ -1833,93 +1801,90 @@ namespace jep
 	//returns random number within range with added resolution
 	bignum randomNumberAddPrecision(const bignum &bn1, const bignum &bn2, int add_precision)
 	{
-		if (add_precision > ONES_PLACE)
-			throw error_handler(__FILE__, __LINE__, "specified precision was too fine");
-
 		if (bn1.getBase() != bn2.getBase())
 			throw error_handler(__FILE__, __LINE__, "random numbers can only be generated between numbers of the same base");
 
 		if (bn1 == bn2)
 			return bn1;
 
-		bignum temp;
 		bignum difference;
 		difference.setBase(bn1.getBase());
-		temp.setBase(bn1.getBase());
-
 		difference = (bn1 > bn2 ? bn1 - bn2 : bn2 - bn1);
 
 		int start = difference.getDigitCount() - 1;
-		int tempdigit;
+		int new_right_most = (add_precision > 0 ? difference.getRightMost() - add_precision : difference.getRightMost());
 
-		int counter = (add_precision > 0 ? difference.getDigitRange() + add_precision : difference.getDigitRange());
-
-		for (int i = 0; i < counter; i++)
-		{
-			int index = (start - i);
-			tempdigit = (rand() % difference.getBase());
-			temp.setDigit(index, tempdigit);
-		}
-
+		//increment is a random bignum between 0 and the difference of the two
 		bignum increment;
 		increment.setBase(difference.getBase());
-		increment.setDigit((difference.getDigitCount() - counter), 1);
 
-		difference += increment;
+		int tempdigit;
 
-		while (temp >= difference && !temp.isNegative())
-			temp -= difference;
+		bignum mod;
+		mod.setBase(difference.getBase());
 
-		return (bn1 > bn2 ? bn2 + temp : bn1 + temp);
+		//verifies that random digit selected for particular index won't make the random number greater than the difference
+		bool increment_is_lower_than_difference = false;
+		for (int i = start; i >= new_right_most; i--)
+		{
+			if (i < 0)
+				break;
+
+			tempdigit = (rand() % difference.getBase());
+			mod.setDigit(i, tempdigit);
+		}
+
+		increment = modulo(mod, difference);
+
+		return (bn1 < bn2 ? bn1 + increment : bn2 + increment);
 	}
 
 	//returns random number within range with a specified resolution
 	bignum randomNumberForcePrecision(const bignum &bn1, const bignum &bn2, int force_precision)
 	{
-		if (force_precision > ONES_PLACE)
-			throw error_handler(__FILE__, __LINE__, "specified precision was too fine");
-
 		if (bn1.getBase() != bn2.getBase())
 			throw error_handler(__FILE__, __LINE__, "random numbers can only be generated between numbers of the same base");
 
 		if (bn1 == bn2)
 			return bn1;
 
-		bignum temp;
 		bignum difference;
 		difference.setBase(bn1.getBase());
-		temp.setBase(bn1.getBase());
-
-		bignum bn1_adjusted(bn1);
-		bn1_adjusted.roundToIndex(ONES_PLACE - force_precision);
-
-		bignum bn2_adjusted(bn1);
-		bn2_adjusted.roundToIndex(ONES_PLACE - force_precision);
-
-		difference = (bn1_adjusted > bn2_adjusted ? bn1_adjusted - bn2_adjusted : bn2_adjusted - bn1_adjusted);
+		difference = (bn1 > bn2 ? bn1 - bn2 : bn2 - bn1);
 
 		int start = difference.getDigitCount() - 1;
 		int tempdigit;
 
-		int counter = (difference.getDigitCount() - (ONES_PLACE - force_precision));
+		int counter = difference.getDigitRange();
 
+		//increment is a random bignum between 0 and the difference of the two
+		bignum increment;
+		increment.setBase(difference.getBase());
+
+		//verifies that random digit selected for particular index won't make the random number greater than the difference
+		bool increment_is_lower_than_difference = false;
 		for (int i = 0; i < counter; i++)
 		{
 			int index = (start - i);
-			tempdigit = (rand() % difference.getBase());
-			temp.setDigit(index, tempdigit);
+
+			if (index < 0 || index < force_precision)
+				break;
+
+			if (increment_is_lower_than_difference)
+				tempdigit = (rand() % difference.getBase());
+
+			else
+			{
+				tempdigit = (rand() % difference.getDigit(index) + 1);
+				increment_is_lower_than_difference = tempdigit < difference.getDigit(index);
+			}
+
+			increment.setDigit(index, tempdigit);
 		}
 
-		bignum increment;
-		increment.setBase(difference.getBase());
 		increment.setDigit((difference.getDigitCount() - counter), 1);
 
-		difference += increment;
-
-		while (temp >= difference)
-			temp -= difference;
-
-		return (bn1_adjusted > bn2_adjusted ? bn2_adjusted + temp : bn1_adjusted + temp);
+		return (bn1 < bn2 ? bn1 + increment : bn2 + increment);
 	}
 
 	//returns average of all values passed

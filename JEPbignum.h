@@ -19,8 +19,8 @@ using std::list;
 using std::string;
 using std::numeric_limits;
 
-#define MAXDIGITS 1024
-#define ONES_PLACE 100
+#define MAXDIGITS 124
+#define ONES_PLACE 24
 #define DEFAULT_FLOAT_PRECISION 10
 #define EXPONENTIAL_ACCURACY_TOLERANCE 10
 #define ROOT_ACCURACY_TOLERANCE 10
@@ -80,6 +80,8 @@ namespace jep
 			void setPositive() { negative = false; }
 			void setBase(int n);
 
+			int getRightMost() const { return right_most; }
+			int getLeftMost() const { return left_most; }
 			int getDigit(int n) const { return digits[n]; }
 			int getDigitCount() const { return digitCount; }
 			int getDecimalCount() const { return decimalCount; }
