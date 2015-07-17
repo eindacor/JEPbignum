@@ -831,7 +831,7 @@ namespace jep
 
 		//starting with the left-most digit, create a bignumber of that digit that matches the set base
 		bignum number_to_compare(bn1.getDigit(index));
-		number_to_compare.setBase(baseSet);
+		number_to_compare.convertBase(baseSet);
 
 		//ignore decimal places when comparing dividend to digits of the divisor
 		bignum nextNumber = divideNumbersSimple(number_to_compare, bn2.absolute().noDecimal(), remainder);
