@@ -1045,9 +1045,7 @@ namespace jep
 		int i = c - '0';
 
 		if (i >= 0 && i <= 9)
-		{
 			return i;
-		}
 
 		else
 		{
@@ -1059,6 +1057,9 @@ namespace jep
 	//verifies the character passed is a valid number within the current base
 	bool isNumber(char const &c, settings &user)
 	{
+		if (c == '@')
+			return false;
+
 		return (checkNumber(c) >= 0 && checkNumber(c) <= (user.getBase() - 1));
 	}
 

@@ -19,7 +19,7 @@ using std::list;
 using std::string;
 using std::numeric_limits;
 
-#define MAXDIGITS 512
+#define MAXDIGITS 4096
 #define ONES_PLACE 64
 #define DEFAULT_FLOAT_PRECISION 10
 #define EXPONENTIAL_ACCURACY_TOLERANCE 10

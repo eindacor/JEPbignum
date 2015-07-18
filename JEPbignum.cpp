@@ -1403,11 +1403,29 @@ namespace jep
 		bignum temp(0);
 		temp.setBase(n);
 
+		bignum original_ten(10);
+		original_ten.setBase(base);
+		bignum converted_ten(original_ten);
+		converted_ten.convertBaseSimple(n);
+
+		bignum original_nth;
+		bignum converted_nth;
+
 		if (base != n)
 		{
 			for (int i = 0; i < digitRange; i++)
 			{
 				int index(left_most - i);
+
+				if (i == 0)
+				{
+					original_nth = bignum(index - ONES_PLACE);
+					original_nth.convertBaseSimple(base);
+					converted_nth = bignum(original_nth);
+					converted_nth.convertBaseSimple(n);
+				}
+				
+				else converted_nth--;
 
 				if (index >= MAXDIGITS)
 					throw error_handler(__FILE__, __LINE__, "The value being calculated is too large for the settings provided");
@@ -1417,19 +1435,14 @@ namespace jep
 
 				//each digit of the number is evaluated evaluated X * 10^n format
 				bignum original_digit(getDigit(index));
+				if (original_digit.isZero())
+					continue;
+
 				original_digit.convertBaseSimple(base);
-				bignum original_ten(10);
-				original_ten.setBase(base);
-				bignum original_nth(index - ONES_PLACE);
-				original_nth.convertBaseSimple(base);
 
 				//each of the above format is converted simply
 				bignum converted_digit(original_digit);
 				converted_digit.convertBaseSimple(n);
-				bignum converted_ten(original_ten);
-				converted_ten.convertBaseSimple(n);
-				bignum converted_nth(original_nth);
-				converted_nth.convertBaseSimple(n);
 				
 				//add X * 10^n to the solution
 				bignum multiplier(exponent(converted_ten, converted_nth));
