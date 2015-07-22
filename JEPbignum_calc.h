@@ -16,7 +16,7 @@ using std::list;
 
 namespace jep
 {
-	enum STYPE { FACTORIAL = 0, ITERATION, EXPONENT, MULTIPLY, DIVIDE, ADD, SUBTRACT, MODULO, ROOT, ERROR };
+	enum STYPE { FACTORIAL = 0, ITERATION, EXPONENT, ROOT, MODULO, MULTIPLY, DIVIDE, ADD, SUBTRACT, INVALID_TYPE };
 	enum ITYPE { NONE = 0, NUMBER, SYMBOL, PAREN };
 
 	class calc_ptr;
@@ -95,7 +95,7 @@ namespace jep
 		ITYPE getItemType() { return itemType; }
 
 		virtual bignum getStoredNumber() { return bignum(0); }
-		virtual STYPE getsymbol_type() { return ERROR; }
+		virtual STYPE getSymbolType() { return INVALID_TYPE; }
 		virtual char getStoredChar() { return '0'; }
 		virtual int getParenID() { return 0; }
 		virtual void setParenID(int n) {};
@@ -124,7 +124,7 @@ namespace jep
 		~symbol_item(){};
 
 		char getStoredChar() { return stored; }
-		STYPE getsymbol_type() { return symbol_type; }
+		STYPE getSymbolType() { return symbol_type; }
 
 	private:
 		char stored;

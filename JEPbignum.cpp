@@ -137,7 +137,7 @@ namespace jep
 		bignum big_mantissa(mantissa, 2, false);
 		big_mantissa.rightShift(mantissa_delim);
 
-		//create the mantissa as a binary bignum, adjust based on exponent bias
+		//create the exponent as a binary bignum, adjust based on exponent bias
 		bignum big_exponent(exponent, 2, false);
 		bignum big_exponent_bias(exponent_bias);
 		big_exponent_bias.convertBase(2);
@@ -1055,14 +1055,10 @@ namespace jep
 
 		throw error_handler(__FILE__, __LINE__, "An error has occurred");
 	}
-	
-	bignum root(const bignum &nth_root, const bignum &base_number)
-	{
-		return root(nth_root, base_number, ROOT_ACCURACY_TOLERANCE);
-	}
 
 	bignum root(const bignum &nth_root, const bignum &base_number, int decimal_places)
 	{	
+		//std::cout << "root calc" << std::endl;
 		if (nth_root.getBase() != base_number.getBase())
 			return root(nth_root, base_number.getConverted(nth_root.getBase()), decimal_places);
 
@@ -1082,7 +1078,7 @@ namespace jep
 			return root(nth_root.absolute(), one / base_number, decimal_places);
 		}
 
-		if (base_number.isZero() || base_number == 1)
+		if (base_number == 0 || base_number == 1)
 			return base_number;
 
 		//cross-checks the root being tested to the precision threshold specified

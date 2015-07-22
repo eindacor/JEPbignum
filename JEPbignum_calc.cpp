@@ -8,38 +8,17 @@ namespace jep
 
 		switch (c)
 		{
-		case '+': symbol_type = ADD;
-			break;
-
-		case '-': symbol_type = SUBTRACT;
-			break;
-
-		case '*': symbol_type = MULTIPLY;
-			break;
-
-		case 'x': symbol_type = MULTIPLY;
-			break;
-
-		case '/': symbol_type = DIVIDE;
-			break;
-
-		case '^': symbol_type = EXPONENT;
-			break;
-
-		case '!': symbol_type = FACTORIAL;
-			break;
-
-		case '%': symbol_type = MODULO;
-			break;
-
-		case 'r': symbol_type = ROOT;
-			break;
-
-		case 'c': symbol_type = ITERATION;
-			break;
-
-		default: symbol_type = ERROR;
-			break;
+		case '+': symbol_type = ADD; break;
+		case '-': symbol_type = SUBTRACT; break;
+		case '*': symbol_type = MULTIPLY; break;
+		case 'x': symbol_type = MULTIPLY; break;
+		case '/': symbol_type = DIVIDE; break;
+		case '^': symbol_type = EXPONENT; break;
+		case '!': symbol_type = FACTORIAL; break;
+		case '%': symbol_type = MODULO; break;
+		case 'r': symbol_type = ROOT; break;
+		case 'c': symbol_type = ITERATION; break;
+		default: symbol_type = INVALID_TYPE; break;
 		}
 	}
 
@@ -274,7 +253,7 @@ namespace jep
 						}
 
 						//  (*  
-						if ((*after)->getItemType() == SYMBOL && (*after)->getsymbol_type() != SUBTRACT)
+						if ((*after)->getItemType() == SYMBOL && (*after)->getSymbolType() != SUBTRACT)
 						{
 							RETURN_FALSE;
 						}
@@ -301,13 +280,13 @@ namespace jep
 					}
 
 					//  -4!
-					if ((*i)->getStoredNumber().isNegative() && (*after)->getItemType() == SYMBOL && (*after)->getsymbol_type() == FACTORIAL)
+					if ((*i)->getStoredNumber().isNegative() && (*after)->getItemType() == SYMBOL && (*after)->getSymbolType() == FACTORIAL)
 					{
 						RETURN_FALSE;
 					}
 
 					//  .4!
-					if ((*i)->getStoredNumber().getDecimalCount() > 0 && (*after)->getItemType() == SYMBOL && (*after)->getsymbol_type() == FACTORIAL)
+					if ((*i)->getStoredNumber().getDecimalCount() > 0 && (*after)->getItemType() == SYMBOL && (*after)->getSymbolType() == FACTORIAL)
 					{
 						RETURN_FALSE;
 					}
@@ -341,7 +320,7 @@ namespace jep
 
 				case SYMBOL:
 					//  symbol other than ! as last item
-					if ((*i)->getsymbol_type() != FACTORIAL)
+					if ((*i)->getSymbolType() != FACTORIAL)
 					{
 						RETURN_FALSE;
 					}
@@ -371,7 +350,7 @@ namespace jep
 						}
 
 						//  (*
-						if ((*after)->getItemType() == SYMBOL && (*after)->getsymbol_type() != SUBTRACT)
+						if ((*after)->getItemType() == SYMBOL && (*after)->getSymbolType() != SUBTRACT)
 						{
 							RETURN_FALSE;
 						}
@@ -385,25 +364,25 @@ namespace jep
 
 				case SYMBOL:
 					//  !!
-					if ((*after)->getItemType() == SYMBOL && (*after)->getsymbol_type() == FACTORIAL && (*i)->getsymbol_type() == FACTORIAL)
+					if ((*after)->getItemType() == SYMBOL && (*after)->getSymbolType() == FACTORIAL && (*i)->getSymbolType() == FACTORIAL)
 					{
 						RETURN_FALSE;
 					}
 
 					//  *+
-					if ((*after)->getItemType() == SYMBOL && (*after)->getsymbol_type() != SUBTRACT && (*i)->getsymbol_type() != FACTORIAL)
+					if ((*after)->getItemType() == SYMBOL && (*after)->getSymbolType() != SUBTRACT && (*i)->getSymbolType() != FACTORIAL)
 					{
 						RETURN_FALSE;
 					}
 
 					//  ^.7
-					if ((*i)->getsymbol_type() == EXPONENT && (*after)->getItemType() == NUMBER && (*after)->getStoredNumber().getDecimalCount() > 0)
+					if ((*i)->getSymbolType() == EXPONENT && (*after)->getItemType() == NUMBER && (*after)->getStoredNumber().getDecimalCount() > 0)
 					{
 						RETURN_FALSE;
 					}
 
 					//  +)
-					if ((*i)->getsymbol_type() != FACTORIAL && (*after)->getItemType() == PAREN && !(*after)->getOpen())
+					if ((*i)->getSymbolType() != FACTORIAL && (*after)->getItemType() == PAREN && !(*after)->getOpen())
 					{
 						RETURN_FALSE;
 					}
@@ -418,13 +397,13 @@ namespace jep
 					}
 
 					// -4!
-					if ((*i)->getStoredNumber().isNegative() && (*after)->getItemType() == SYMBOL && (*after)->getsymbol_type() == FACTORIAL)
+					if ((*i)->getStoredNumber().isNegative() && (*after)->getItemType() == SYMBOL && (*after)->getSymbolType() == FACTORIAL)
 					{
 						RETURN_FALSE;
 					}
 
 					//  .4!
-					if ((*i)->getStoredNumber().getDecimalCount() > 0 && (*after)->getItemType() == SYMBOL && (*after)->getsymbol_type() == FACTORIAL)
+					if ((*i)->getStoredNumber().getDecimalCount() > 0 && (*after)->getItemType() == SYMBOL && (*after)->getSymbolType() == FACTORIAL)
 					{
 						RETURN_FALSE;
 					}
@@ -508,7 +487,7 @@ namespace jep
 				list<calc_ptr>::iterator i1 = std::prev(i, 2);
 
 				//if the problem has 2 symbols followed by a number, checkvalid confirms the second symbol is a negative, which means the number is negative
-				if ((*i1)->getItemType() == SYMBOL && (*i2)->getItemType() == SYMBOL && (*i3)->getItemType() == NUMBER && (*i1)->getsymbol_type() != FACTORIAL)
+				if ((*i1)->getItemType() == SYMBOL && (*i2)->getItemType() == SYMBOL && (*i3)->getItemType() == NUMBER && (*i1)->getSymbolType() != FACTORIAL)
 				{
 					itemList.erase(i2);
 					bignum temp = (*i3)->getStoredNumber();
@@ -583,7 +562,7 @@ namespace jep
 
 				case SYMBOL:
 					// "!(" becomes "!*("
-					if ((*i)->getsymbol_type() == FACTORIAL && (*after)->getItemType() == PAREN && (*after)->getOpen())
+					if ((*i)->getSymbolType() == FACTORIAL && (*after)->getItemType() == PAREN && (*after)->getOpen())
 					{
 						addCharToList(itemList, after, '*');
 						i = itemList.begin();
@@ -638,7 +617,7 @@ namespace jep
 		list<calc_ptr>::iterator i3 = std::next(itemList.begin(), 2);
 
 		//generates a new number based on the symbol between the numbers passed
-		switch ((*i2)->getsymbol_type())
+		switch ((*i2)->getSymbolType())
 		{
 		case ADD:
 			temp = addNumbers((*i1)->getStoredNumber(), (*i3)->getStoredNumber());
@@ -702,7 +681,7 @@ namespace jep
 			bool listChanged = false;
 
 			//runs through each type of problem from pfemdas prioritization, checks for applicable equations, simplifies, them, and replaces them with a value
-			for (int typeCheck = 0; typeCheck < 7; ++typeCheck)
+			for (int typeCheck = 0; (STYPE)typeCheck != INVALID_TYPE; ++typeCheck)
 			{
 				//PRINTLIST(itemList);
 				STYPE symbol_type = (STYPE)typeCheck;
@@ -711,10 +690,10 @@ namespace jep
 				for (list<calc_ptr>::iterator i = itemList.begin(); i != itemList.end(); ++i)
 				{
 					//if the symbol found matches the current pfemdas symbol
-					if ((*i)->getItemType() == SYMBOL && (*i)->getsymbol_type() == typeCheck)
+					if ((*i)->getItemType() == SYMBOL && (*i)->getSymbolType() == typeCheck)
 					{
 						//special case for factorial symbol
-						if ((*i)->getsymbol_type() == FACTORIAL)
+						if ((*i)->getSymbolType() == FACTORIAL)
 						{
 							//create iterator for number before the symbol, simplify
 							list<calc_ptr>::iterator before = std::prev(i, 1);
@@ -731,23 +710,14 @@ namespace jep
 							list<calc_ptr>::iterator after = std::next(i, 1);
 							switch (typeCheck)
 							{
-							case EXPONENT: temp = exponent((*before)->getStoredNumber(), (*after)->getStoredNumber());
-								break;
-
-							case ITERATION: temp = combinations((*before)->getStoredNumber(), (*after)->getStoredNumber());
-								break;
-
-							case MULTIPLY: temp = multiplyNumbers((*before)->getStoredNumber(), (*after)->getStoredNumber());
-								break;
-
-							case DIVIDE: temp = divideNumbers((*before)->getStoredNumber(), (*after)->getStoredNumber());
-								break;
-
-							case ADD: temp = addNumbers((*before)->getStoredNumber(), (*after)->getStoredNumber());
-								break;
-
-							case SUBTRACT: temp = subtractNumbers((*before)->getStoredNumber(), (*after)->getStoredNumber());
-								break;
+							case EXPONENT: temp = exponent((*before)->getStoredNumber(), (*after)->getStoredNumber()); break;
+							case ITERATION: temp = combinations((*before)->getStoredNumber(), (*after)->getStoredNumber()); break;
+							case ROOT: temp = root((*before)->getStoredNumber(), (*after)->getStoredNumber()); break;
+							case MODULO: temp = modulo((*before)->getStoredNumber(), (*after)->getStoredNumber()); break;
+							case MULTIPLY: temp = multiplyNumbers((*before)->getStoredNumber(), (*after)->getStoredNumber()); break;
+							case DIVIDE: temp = divideNumbers((*before)->getStoredNumber(), (*after)->getStoredNumber()); break;
+							case ADD: temp = addNumbers((*before)->getStoredNumber(), (*after)->getStoredNumber()); break;
+							case SUBTRACT: temp = subtractNumbers((*before)->getStoredNumber(), (*after)->getStoredNumber()); break;
 
 							default: cout << __FILE__ << ", line " << __LINE__ << ": An error has occurred.";
 								break;
@@ -898,7 +868,7 @@ namespace jep
 		if ((*start)->getItemType() == SYMBOL)
 		{
 			//if it's anything other than subtract, add previous
-			if ((*start)->getsymbol_type() != SUBTRACT)
+			if ((*start)->getSymbolType() != SUBTRACT)
 			{
 				addNumberToList(itemList, itemList.begin(), previous);
 				usePrevious = true;
@@ -910,7 +880,7 @@ namespace jep
 				list<calc_ptr>::iterator after = std::next(start, 1);
 
 				//if the 2nd is a subtract symbol, add previous
-				if ((*after)->getItemType() == SYMBOL && (*after)->getsymbol_type() == SUBTRACT)
+				if ((*after)->getItemType() == SYMBOL && (*after)->getSymbolType() == SUBTRACT)
 				{
 					addNumberToList(itemList, itemList.begin(), previous);
 					usePrevious = true;
@@ -1035,7 +1005,7 @@ namespace jep
 		case '%': return MODULO;
 		case 'r': return ROOT;
 		case 'c': return ITERATION;
-		default: return ERROR;
+		default: return INVALID_TYPE;
 		}
 	}
 
@@ -1066,7 +1036,7 @@ namespace jep
 	//verifies the character passed is a valid symbol
 	bool isSymbol(char &c)
 	{
-		return (checkSymbol(c) != ERROR);
+		return (checkSymbol(c) != INVALID_TYPE);
 	}
 
 	bool generateProblem(string &c, list <calc_ptr> &itemList, settings &user, const bignum &previous)
@@ -1164,7 +1134,7 @@ namespace jep
 			}
 
 			//if it's a symbol
-			else if (checkSymbol(c[i]) != ERROR)
+			else if (checkSymbol(c[i]) != INVALID_TYPE)
 			{
 				//if the primer has been primed with numbers, add that number to the problem
 				if (primer.getNumbers() > 0)

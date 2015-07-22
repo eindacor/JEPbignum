@@ -19,7 +19,7 @@ using std::list;
 using std::string;
 using std::numeric_limits;
 
-#define MAXDIGITS 4096
+#define MAXDIGITS 1024
 #define ONES_PLACE 64
 #define DEFAULT_FLOAT_PRECISION 10
 #define EXPONENTIAL_ACCURACY_TOLERANCE 10
@@ -47,8 +47,7 @@ namespace jep
 	bignum factorial(const bignum &bn);
 	bignum combinations(const bignum &bn1, const bignum &bn2);
 	bignum exponent(const bignum &base_value, const bignum &power, int precision = EXPONENTIAL_ACCURACY_TOLERANCE);
-	bignum root(const bignum &nth_root, const bignum &base);
-	bignum root(const bignum &nth_root, const bignum &base, int precision);
+	bignum root(const bignum &nth_root, const bignum &base, int precision = ROOT_ACCURACY_TOLERANCE);
 
 	//MISC FUNCTIONS
 	bignum average(vector<bignum> numbers_passed);
@@ -70,10 +69,8 @@ namespace jep
 			bignum(vector<int> n, int set_base, bool is_negative);
 			bignum() { initializeBignum(); }
     		bignum(int n);
-			bignum(float f) : bignum(f, DEFAULT_FLOAT_PRECISION) {};
-			bignum(float f, int decimal_places);
-			bignum(double d) : bignum(d, DEFAULT_FLOAT_PRECISION) {};
-			bignum(double d, int decimal_places);
+			bignum(float f, int decimal_places = DEFAULT_FLOAT_PRECISION);
+			bignum(double d, int decimal_places = DEFAULT_FLOAT_PRECISION);
     		bignum(string s);
     		bignum(string s, int baseGiven);
 			bignum(const bignum &bn) { initializeBignum(); *this = bn; }
@@ -90,12 +87,12 @@ namespace jep
 			int getDigit(int n) const { return digits[n]; }
 			int getDigitCount() const { return digitCount; }
 			int getDecimalCount() const { return decimalCount; }
-    		int getBase() const {return base;}
+    		int getBase() const { return base;}
 			int getDigitRange() const { return digitRange; }	
     		string getDigitString (int n) const;
     		string getNumberString(bool include_commas, bool percent, int decimal_places) const;
 
-			bool isZero() const {return is_zero; }
+			bool isZero() const { return is_zero; }
 			bool isPrime() const;
 			bool isNegative() const { return negative; }
 			bool isPositive() const { return !negative; }
@@ -127,8 +124,6 @@ namespace jep
 			const bignum operator % (const bignum &bn) const { return modulo(*this, bn); }
 
 			explicit operator int() const;
-			//explicit operator float() const;
-			//explicit operator double() const;
 			explicit operator string() const { return getNumberString(false, false, decimalCount); }
 
 			bignum& operator += (const bignum& bn) { *this = addNumbers(*this, bn); return *this; }
